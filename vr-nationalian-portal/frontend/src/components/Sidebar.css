@@ -94,6 +94,7 @@
   cursor: pointer;
   transition: all 0.2s;
   margin-bottom: 0.25rem;
+  text-align: left;
 }
 
 .nav-item:hover {
@@ -113,10 +114,12 @@
   align-items: center;
   justify-content: center;
   width: 24px;
+  flex-shrink: 0;
 }
 
 .nav-label {
   flex: 1;
+  text-align: left;
 }
 
 .sidebar-footer {
@@ -138,6 +141,7 @@
   font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: all 0.2s;
+  text-align: left;
 }
 
 .logout-btn:hover {
