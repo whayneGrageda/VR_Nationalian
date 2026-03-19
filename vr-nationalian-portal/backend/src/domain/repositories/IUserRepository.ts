@@ -12,4 +12,5 @@ export interface IUserRepository {
   getActiveStudentCountBySection(sectionId: string): Promise<number>;
   updateProfile(data: UpdateProfileDTO): Promise<boolean>;
   changePassword(data: ChangePasswordDTO): Promise<boolean>;
+  deactivateSession(sessionToken: string): Promise<void>;
 }

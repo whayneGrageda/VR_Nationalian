@@ -226,4 +226,13 @@ export class UserRepository implements IUserRepository {
       sectionName: student.tblsections?.section_name
     }));
   }
+
+  async deactivateSession(sessionToken: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('tblsessions')
+      .update({ is_active: false })
+      .eq('token', sessionToken);
+
+    if (error) throw new Error(error.message);
+  }
 }

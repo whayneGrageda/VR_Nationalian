@@ -64,9 +64,11 @@ vr-nationalian-portal/
 #### Authentication
 - Login with username/password (bcrypt hashed)
 - Role-based access control (Student/Professor/Admin)
-- Session management
+- Session management with active/inactive tracking
+- Logout functionality that deactivates sessions
 - Protected routes
 - Automatic "Welcome Back" achievement on first login
+- Prevents duplicate sessions per device type
 
 #### Student Features
 - Personal dashboard with progress tracking
@@ -178,6 +180,14 @@ Run the SQL migration to enable automatic achievement granting:
 
 This creates a trigger that automatically grants the "Welcome Back" achievement when students log in for the first time (works for both Unity VR and web portal).
 
+Run the SQL migration to add session tracking:
+```bash
+# In Supabase SQL Editor, run:
+# mds-and-sqls/ADD_IS_ACTIVE_TO_SESSIONS.sql
+```
+
+This adds the `is_active` column to track active/inactive sessions for accurate login metrics and proper logout functionality.
+
 See `mds-and-sqls/ACHIEVEMENT_TRIGGER_README.md` for detailed setup instructions.
 
 ### 4. Run Development Servers
@@ -208,6 +218,9 @@ This builds both backend and frontend.
 - `POST /api/auth/login` - Login (all roles)
   - Body: `{ username, password }`
   - Returns: User object with session token
+- `POST /api/auth/logout` - Logout (all roles)
+  - Body: `{ sessionToken }`
+  - Returns: Success message
 
 ### Health Check
 - `GET /api/health` - System health status
@@ -327,10 +340,12 @@ This builds both backend and frontend.
 
 ✅ **Current Implementation**
 - Passwords hashed with bcrypt at database level (pgcrypto extension)
-- Session-based authentication
+- Session-based authentication with active/inactive tracking
+- Logout functionality that deactivates sessions
 - Role-based access control
 - Database-level password validation via Supabase RPC functions
 - Automatic achievement granting via database triggers
+- Prevents duplicate sessions per device type
 
 🔒 **Production Recommendations**
 - Enable Row Level Security (RLS) in Supabase

@@ -18,6 +18,7 @@ import { UserProfileUseCase } from './application/usecases/UserProfileUseCase';
 import { StudentProgressUseCase } from './application/usecases/StudentProgressUseCase';
 import { AnalyticsUseCase } from './application/usecases/AnalyticsUseCase';
 import { LeaderboardUseCase } from './application/usecases/LeaderboardUseCase';
+import { LogoutUseCase } from './application/usecases/LogoutUseCase';
 import { AuthController } from './presentation/controllers/AuthController';
 import { SectionController } from './presentation/controllers/SectionController';
 import { StudentController } from './presentation/controllers/StudentController';
@@ -29,6 +30,7 @@ import { StudentProgressController } from './presentation/controllers/StudentPro
 import { AnalyticsController } from './presentation/controllers/AnalyticsController';
 import { HealthController } from './presentation/controllers/HealthController';
 import { LeaderboardController } from './presentation/controllers/LeaderboardController';
+import { LogoutController } from './presentation/controllers/LogoutController';
 import { createRoutes } from './presentation/routes';
 
 dotenv.config();
@@ -57,6 +59,7 @@ const userProfileUseCase = new UserProfileUseCase(userRepository);
 const studentProgressUseCase = new StudentProgressUseCase(studentProgressRepository);
 const analyticsUseCase = new AnalyticsUseCase(analyticsRepository);
 const leaderboardUseCase = new LeaderboardUseCase(leaderboardRepository);
+const logoutUseCase = new LogoutUseCase(userRepository);
 
 const authController = new AuthController(authUseCase);
 const sectionController = new SectionController(sectionUseCase);
@@ -69,8 +72,9 @@ const studentProgressController = new StudentProgressController(studentProgressU
 const analyticsController = new AnalyticsController(analyticsUseCase);
 const healthController = new HealthController(supabase);
 const leaderboardController = new LeaderboardController(leaderboardUseCase);
+const logoutController = new LogoutController(logoutUseCase);
 
-const routes = createRoutes(authController, sectionController, studentController, professorController, statsController, professorStatsController, userProfileController, studentProgressController, analyticsController, healthController, leaderboardController);
+const routes = createRoutes(authController, sectionController, studentController, professorController, statsController, professorStatsController, userProfileController, studentProgressController, analyticsController, healthController, leaderboardController, logoutController);
 app.use('/api', routes);
 
 app.listen(PORT, () => {

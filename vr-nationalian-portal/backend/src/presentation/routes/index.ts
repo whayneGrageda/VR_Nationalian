@@ -10,6 +10,7 @@ import { StudentProgressController } from '../controllers/StudentProgressControl
 import { AnalyticsController } from '../controllers/AnalyticsController';
 import { HealthController } from '../controllers/HealthController';
 import { LeaderboardController } from '../controllers/LeaderboardController';
+import { LogoutController } from '../controllers/LogoutController';
 
 export function createRoutes(
   authController: AuthController,
@@ -22,7 +23,8 @@ export function createRoutes(
   studentProgressController: StudentProgressController,
   analyticsController: AnalyticsController,
   healthController: HealthController,
-  leaderboardController: LeaderboardController
+  leaderboardController: LeaderboardController,
+  logoutController: LogoutController
 ): Router {
   const router = Router();
 
@@ -30,6 +32,7 @@ export function createRoutes(
   router.get('/leaderboards', leaderboardController.getLeaderboards);
 
   router.post('/auth/login', authController.login);
+  router.post('/auth/logout', logoutController.logout.bind(logoutController));
 
   router.get('/stats/dashboard', statsController.getDashboardStats);
   router.get('/stats/admin/overview', statsController.getAdminOverview);

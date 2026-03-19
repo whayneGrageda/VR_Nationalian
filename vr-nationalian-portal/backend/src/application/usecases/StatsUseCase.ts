@@ -91,14 +91,14 @@ export class StatsUseCase {
       .eq('is_completed', true)
       .gte('completed_at', oneWeekAgo.toISOString());
 
-    // Get logins today
+    // Get logins today (count sessions created today)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const { count: loginsToday } = await supabase
-      .from('tblusers')
+      .from('tblsessions')
       .select('*', { count: 'exact', head: true })
-      .gte('last_login', today.toISOString());
+      .gte('created_at', today.toISOString());
 
     return {
       recentActivity: activities,

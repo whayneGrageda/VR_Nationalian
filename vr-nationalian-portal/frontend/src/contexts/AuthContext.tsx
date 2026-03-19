@@ -53,7 +53,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Call backend to deactivate session
+    const sessionToken = user?.sessionToken;
+    if (sessionToken) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken })
+        });
+      } catch (error) {
+        console.error('Failed to deactivate session:', error);
+        // Continue with logout even if API call fails
+      }
+    }
+
     setUser(null);
     
     // Remove all auth-related items from localStorage

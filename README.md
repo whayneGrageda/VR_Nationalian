@@ -30,8 +30,10 @@ Clean Architecture with clear separation of concerns:
 ### Authentication & Security
 - Bcrypt password hashing at database level
 - Role-based access control (Student/Professor/Admin)
-- Session management with protected routes
+- Session management with active/inactive tracking
+- Logout functionality that deactivates sessions
 - Database triggers for automatic achievement granting
+- Prevents duplicate sessions per device type
 
 ### Student Portal
 - Personal dashboard with progress tracking
