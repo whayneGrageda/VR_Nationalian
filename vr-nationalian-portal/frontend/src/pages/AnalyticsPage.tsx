@@ -253,6 +253,43 @@ export default function AnalyticsPage() {
                 </div>
               </div>
 
+              {/* At-Risk Students */}
+              <div className="content-card analytics-chart-card">
+                <div className="chart-header">
+                  <div>
+                    <h2 className="card-title">
+                      <AlertCircle size={20} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                      At-Risk Students
+                    </h2>
+                    <p className="chart-subtitle">Low engagement alerts</p>
+                  </div>
+                </div>
+                {getAtRiskStudents().length > 0 ? (
+                  <div className="risk-list">
+                    {getAtRiskStudents().map((student) => (
+                      <div key={student.userId} className="risk-item">
+                        <div className="risk-indicator"></div>
+                        <div className="risk-content">
+                          <div className="risk-name">{student.username}</div>
+                          <div className="risk-stats">
+                            <span className="risk-stat">{student.chaptersCompleted} chapters</span>
+                            <span className="risk-stat">{Math.floor(student.totalPlaytime / 60)}h playtime</span>
+                          </div>
+                        </div>
+                        <div className="risk-badge">Low Activity</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="chart-empty">
+                    <p>All students are engaged! 🎉</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Chapter Difficulty & Achievement Rarity */}
+            <div className="analytics-grid">
               {/* Chapter Difficulty Analysis */}
               <div className="content-card analytics-chart-card">
                 <div className="chart-header">
@@ -296,10 +333,8 @@ export default function AnalyticsPage() {
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* Achievement Rarity & At-Risk Students */}
-            <div className="analytics-grid">
+              {/* Achievement Rarity */}
               <div className="content-card analytics-chart-card">
                 <div className="chart-header">
                   <div>
@@ -335,39 +370,6 @@ export default function AnalyticsPage() {
                       );
                     })}
                 </div>
-              </div>
-
-              <div className="content-card analytics-chart-card">
-                <div className="chart-header">
-                  <div>
-                    <h2 className="card-title">
-                      <AlertCircle size={20} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                      At-Risk Students
-                    </h2>
-                    <p className="chart-subtitle">Low engagement alerts</p>
-                  </div>
-                </div>
-                {getAtRiskStudents().length > 0 ? (
-                  <div className="risk-list">
-                    {getAtRiskStudents().map((student) => (
-                      <div key={student.userId} className="risk-item">
-                        <div className="risk-indicator"></div>
-                        <div className="risk-content">
-                          <div className="risk-name">{student.username}</div>
-                          <div className="risk-stats">
-                            <span className="risk-stat">{student.chaptersCompleted} chapters</span>
-                            <span className="risk-stat">{Math.floor(student.totalPlaytime / 60)}h playtime</span>
-                          </div>
-                        </div>
-                        <div className="risk-badge">Low Activity</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="chart-empty">
-                    <p>All students are engaged! 🎉</p>
-                  </div>
-                )}
               </div>
             </div>
 
