@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import StudentLayout from '../components/StudentLayout';
+import { useAuth } from '../contexts/AuthContext';
 import { Trophy, Zap, Users, Award, Clock, TrendingUp } from 'lucide-react';
 import './LeaderboardPage.css';
 
@@ -61,9 +63,13 @@ function SkeletonLeaderboard() {
 }
 
 export default function LeaderboardPage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [error, setError] = useState('');
+
+  const isStudent = user?.roleId === 1;
+  const LayoutComponent = isStudent ? StudentLayout : Layout;
 
   useEffect(() => {
     fetchLeaderboards();
@@ -112,7 +118,7 @@ export default function LeaderboardPage() {
 
   if (loading) {
     return (
-      <Layout>
+      <LayoutComponent>
         <div className="leaderboard-page">
           <div className="page-header">
             <Trophy size={32} />
@@ -123,22 +129,22 @@ export default function LeaderboardPage() {
           </div>
           <SkeletonLeaderboard />
         </div>
-      </Layout>
+      </LayoutComponent>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      <LayoutComponent>
         <div className="leaderboard-page">
           <div className="error-banner">{error}</div>
         </div>
-      </Layout>
+      </LayoutComponent>
     );
   }
 
   return (
-    <Layout>
+    <LayoutComponent>
       <div className="leaderboard-page">
         <div className="page-header">
           <Trophy size={32} />
@@ -261,6 +267,6 @@ export default function LeaderboardPage() {
           </div>
         </div>
       </div>
-    </Layout>
+    </LayoutComponent>
   );
 }
