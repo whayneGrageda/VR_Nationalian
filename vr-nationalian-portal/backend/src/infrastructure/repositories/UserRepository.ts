@@ -6,56 +6,33 @@ export class UserRepository implements IUserRepository {
   constructor(private supabase: SupabaseClient) {}
 
   async login(username: string, password: string): Promise<User> {
-    // First, authenticate the user
-    const { data: userData, error: userError } = await this.supabase
-      .from('tblusers')
-      .select(`
-        user_id,
-        username,
-        email,
-        role_id,
-        first_name,
-        middle_initial,
-        last_name,
-        section_id,
-        tblroles!inner(role_name)
-      `)
-      .eq('username', username)
-      .eq('password', password)
-      .single();
+    // Call the Supabase fn_login function which handles password hashing
+    const { data, error } = await this.supabase.rpc('fn_login', {
+      p_username: username,
+      p_password: password,
+      p_device_type: 'web'
+    });
 
-    if (userError || !userData) throw new Error('Invalid credentials');
+    if (error || !data) throw new Error('Invalid credentials');
 
-    // Generate a session token
-    const token = this.generateToken();
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+    // Parse the JSON response from the function
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
 
-    // Store the session in tblsessions
-    const { error: sessionError } = await this.supabase
-      .from('tblsessions')
-      .insert({
-        user_id: userData.user_id,
-        token: token,
-        device_type: 'web',
-        expires_at: expiresAt.toISOString()
-      });
-
-    if (sessionError) {
-      console.error('Session creation error:', sessionError);
+    if (!result.success) {
+      throw new Error(result.error || 'Invalid credentials');
     }
 
     return {
-      userId: userData.user_id,
-      username: userData.username,
-      email: userData.email,
-      roleId: userData.role_id,
-      roleName: (userData.tblroles as any).role_name,
-      firstName: userData.first_name,
-      middleInitial: userData.middle_initial,
-      lastName: userData.last_name,
-      sectionId: userData.section_id,
-      sessionToken: token
+      userId: result.user_id,
+      username: result.username,
+      email: result.email,
+      roleId: result.role_id,
+      roleName: result.role_id === 1 ? 'student' : result.role_id === 2 ? 'professor' : 'admin',
+      firstName: result.first_name,
+      middleInitial: result.middle_initial,
+      lastName: result.last_name,
+      sectionId: result.section_id,
+      sessionToken: result.token
     };
   }
 
@@ -199,23 +176,21 @@ export class UserRepository implements IUserRepository {
   }
 
   async changePassword(data: ChangePasswordDTO): Promise<boolean> {
-    // First verify the current password
-    const { data: user, error: verifyError } = await this.supabase
-      .from('tblusers')
-      .select('user_id')
-      .eq('user_id', data.userId)
-      .eq('password', data.currentPassword)
-      .single();
+    // Call fn_update_profile with password parameter
+    const { data: result, error } = await this.supabase.rpc('fn_update_profile', {
+      p_user_id: data.userId,
+      p_password: data.newPassword
+    });
 
-    if (verifyError || !user) throw new Error('Current password is incorrect');
+    if (error) throw new Error(error.message);
 
-    // Update to new password
-    const { error: updateError } = await this.supabase
-      .from('tblusers')
-      .update({ password: data.newPassword })
-      .eq('user_id', data.userId);
+    // Parse the JSON response
+    const response = typeof result === 'string' ? JSON.parse(result) : result;
+    
+    if (!response.success) {
+      throw new Error('Failed to change password');
+    }
 
-    if (updateError) throw new Error(updateError.message);
     return true;
   }
 

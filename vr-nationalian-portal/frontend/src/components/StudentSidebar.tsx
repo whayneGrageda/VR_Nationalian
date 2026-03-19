@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Trophy, FileText, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Award, FileText, Settings, LogOut, Trophy } from 'lucide-react';
 import './Sidebar.css';
 
 export default function StudentSidebar() {
@@ -15,7 +15,7 @@ export default function StudentSidebar() {
 
   const menuItems = [
     { path: '/student', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/student/achievements', label: 'Achievements', icon: Trophy },
+    { path: '/student/achievements', label: 'Achievements', icon: Award },
     { path: '/student/leaderboards', label: 'Leaderboards', icon: Trophy },
     { path: '/student/assessments', label: 'Assessment Results', icon: FileText },
     { path: '/student/settings', label: 'Settings', icon: Settings },
