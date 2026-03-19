@@ -267,19 +267,24 @@ export default function AdminDashboard() {
                 <h2 className="card-title">Recent Activity</h2>
                 {analytics && analytics.recentActivity.length > 0 ? (
                   <div className="activity-list">
-                    {analytics.recentActivity.map((activity, index) => (
-                      <div key={index} className="activity-item">
-                        <div className="activity-icon">
-                          {activity.activityType === 'chapter' ? <BookOpen size={16} /> : <Award size={16} />}
-                        </div>
-                        <div className="activity-content">
-                          <div className="activity-text">
-                            <strong>{activity.username}</strong> {activity.activityType === 'chapter' ? 'completed' : 'unlocked'} {activity.itemName}
+                    {analytics.recentActivity.map((activity, index) => {
+                      const isMasterOfRealm = activity.activityType === 'achievement' && 
+                        activity.itemName.toLowerCase().includes('master of the realm');
+                      
+                      return (
+                        <div key={index} className={`activity-item ${isMasterOfRealm ? 'activity-special' : ''}`}>
+                          <div className="activity-icon">
+                            {activity.activityType === 'chapter' ? <BookOpen size={16} /> : <Award size={16} />}
                           </div>
-                          <div className="activity-time">{new Date(activity.completedAt).toLocaleString()}</div>
+                          <div className="activity-content">
+                            <div className="activity-text">
+                              <strong>{activity.username}</strong> {activity.activityType === 'chapter' ? 'completed' : 'unlocked'} {activity.itemName}
+                            </div>
+                            <div className="activity-time">{new Date(activity.completedAt).toLocaleString()}</div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="card-text">No recent activity</p>
@@ -291,14 +296,21 @@ export default function AdminDashboard() {
                 {overview ? (
                   <div className="insights-grid">
                     <div className="insight-item">
-                      <div className="insight-icon"><Users size={20} /></div>
+                      <div className="insight-icon"><Users size={24} /></div>
                       <div className="insight-content">
                         <div className="insight-value">{overview.insights.avgStudentsPerSection}</div>
                         <div className="insight-label">Avg Students/Section</div>
                       </div>
                     </div>
                     <div className="insight-item">
-                      <div className="insight-icon"><TrendingUp size={20} /></div>
+                      <div className="insight-icon"><Users size={24} /></div>
+                      <div className="insight-content">
+                        <div className="insight-value">{overview.insights.loginsToday}</div>
+                        <div className="insight-label">Logins Today</div>
+                      </div>
+                    </div>
+                    <div className="insight-item">
+                      <div className="insight-icon"><TrendingUp size={24} /></div>
                       <div className="insight-content">
                         <div className="insight-value">
                           {overview.insights.mostActiveSection?.name || 'N/A'}
@@ -309,14 +321,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="insight-item">
-                      <div className="insight-icon"><Users size={20} /></div>
-                      <div className="insight-content">
-                        <div className="insight-value">{overview.insights.loginsToday}</div>
-                        <div className="insight-label">Logins Today</div>
-                      </div>
-                    </div>
-                    <div className="insight-item">
-                      <div className="insight-icon"><BookOpen size={20} /></div>
+                      <div className="insight-icon"><BookOpen size={24} /></div>
                       <div className="insight-content">
                         <div className="insight-value">{overview.insights.chaptersCompletedThisWeek}</div>
                         <div className="insight-label">Chapters This Week</div>
