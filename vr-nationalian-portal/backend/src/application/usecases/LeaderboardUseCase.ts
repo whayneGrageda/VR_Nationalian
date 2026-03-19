@@ -6,9 +6,9 @@ export class LeaderboardUseCase {
 
   async getLeaderboards(): Promise<LeaderboardData> {
     const [topAchievements, topSpeedrunners, topSections] = await Promise.all([
-      this.leaderboardRepository.getTopAchievements(3),
-      this.leaderboardRepository.getTopSpeedrunners(3),
-      this.leaderboardRepository.getTopSections(3)
+      this.leaderboardRepository.getTopAchievements(10),
+      this.leaderboardRepository.getTopSpeedrunners(10),
+      this.leaderboardRepository.getTopSections(10)
     ]);
 
     return {

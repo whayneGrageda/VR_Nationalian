@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { GraduationCap, BookOpen, Users, Gamepad2, Clock, TrendingUp, Plus, BarChart3, Database } from 'lucide-react';
-import { SkeletonStats } from '../components/Skeleton';
+import { GraduationCap, BookOpen, Users, Gamepad2, Clock, TrendingUp, Award } from 'lucide-react';
+import { SkeletonStats, SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import './Dashboard.css';
 
 interface DashboardStats {
@@ -12,17 +11,7 @@ interface DashboardStats {
   activeSessions: number;
 }
 
-interface RecentActivity {
-  type: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  description: string;
-  timestamp: string;
-}
-
 interface AdminOverview {
-  recentActivity: RecentActivity[];
   insights: {
     avgStudentsPerSection: number;
     mostActiveSection: {
@@ -53,8 +42,50 @@ interface HealthStatus {
   };
 }
 
+interface ChapterCompletionRate {
+  chapterId: number;
+  chapterName: string;
+  completionCount: number;
+  completionRate: number;
+}
+
+interface AchievementUnlockRate {
+  achievementId: string;
+  achievementName: string;
+  unlockCount: number;
+  unlockRate: number;
+}
+
+interface TopStudent {
+  userId: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  totalPlaytime: number;
+  chaptersCompleted: number;
+}
+
+interface RecentActivity {
+  userId: string;
+  username: string;
+  activityType: 'chapter' | 'achievement';
+  itemName: string;
+  completedAt: string;
+}
+
+interface AdminAnalytics {
+  totalStudents: number;
+  totalChapters: number;
+  totalAchievements: number;
+  overallCompletionRate: number;
+  averagePlaytime: number;
+  chapterCompletionRates: ChapterCompletionRate[];
+  achievementUnlockRates: AchievementUnlockRate[];
+  topStudents: TopStudent[];
+  recentActivity: RecentActivity[];
+}
+
 export default function AdminDashboard() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({
     totalProfessors: 0,
@@ -64,6 +95,7 @@ export default function AdminDashboard() {
   });
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -74,10 +106,11 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, overviewRes, healthRes] = await Promise.all([
+      const [statsRes, overviewRes, healthRes, analyticsRes] = await Promise.all([
         fetch('/api/stats/dashboard'),
         fetch('/api/stats/admin/overview'),
-        fetch('/api/health')
+        fetch('/api/health'),
+        fetch('/api/analytics/admin')
       ]);
 
       if (!statsRes.ok || !overviewRes.ok) throw new Error('Failed to fetch data');
@@ -85,10 +118,12 @@ export default function AdminDashboard() {
       const statsData = await statsRes.json();
       const overviewData = await overviewRes.json();
       const healthData = healthRes.ok ? await healthRes.json() : null;
+      const analyticsData = analyticsRes.ok ? await analyticsRes.json() : null;
 
       setStats(statsData);
       setOverview(overviewData);
       setHealth(healthData);
+      setAnalytics(analyticsData);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -129,6 +164,12 @@ export default function AdminDashboard() {
     return `${minutes}m`;
   };
 
+  const formatPlaytime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
   return (
     <Layout>
       <div className="dashboard">
@@ -140,128 +181,243 @@ export default function AdminDashboard() {
         {error && <div className="error-banner">{error}</div>}
 
         {loading ? (
-          <SkeletonStats count={4} />
-        ) : (
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-blue"><GraduationCap size={32} /></div>
-              <div className="stat-content">
-                <div className="stat-label">Total Professors</div>
-                <div className="stat-value">{stats.totalProfessors}</div>
-              </div>
+          <>
+            <SkeletonStats count={7} />
+            
+            <div className="content-grid">
+              <SkeletonCard />
+              <SkeletonCard />
             </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-green"><BookOpen size={32} /></div>
-              <div className="stat-content">
-                <div className="stat-label">Total Sections</div>
-                <div className="stat-value">{stats.totalSections}</div>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-purple"><Users size={32} /></div>
-              <div className="stat-content">
-                <div className="stat-label">Total Students</div>
-                <div className="stat-value">{stats.totalStudents}</div>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-orange"><Gamepad2 size={32} /></div>
-              <div className="stat-content">
-                <div className="stat-label">Active Sessions</div>
-                <div className="stat-value">{stats.activeSessions}</div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        <div className="content-grid">
-          <div className="content-card">
-            <h2 className="card-title">Recent Activity</h2>
-            {overview && overview.recentActivity.length > 0 ? (
-              <div className="activity-list">
-                {overview.recentActivity.map((activity, index) => (
-                  <div key={index} className="activity-item">
-                    <div className="activity-icon">
-                      <BookOpen size={16} />
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-text">
-                        <strong>{activity.firstName || activity.username}</strong> {activity.description}
-                      </div>
-                      <div className="activity-time">{formatTimeAgo(activity.timestamp)}</div>
-                    </div>
-                  </div>
+            <div className="content-card">
+              <div className="skeleton skeleton-title" style={{ marginBottom: '1rem' }} />
+              <SkeletonTable rows={10} />
+            </div>
+
+            <div className="content-grid">
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+
+            <div className="content-card">
+              <div className="skeleton skeleton-title" style={{ marginBottom: '1rem' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="skeleton" style={{ height: '80px' }} />
                 ))}
               </div>
-            ) : (
-              <p className="card-text">No recent activity</p>
-            )}
-          </div>
-
-          <div className="content-card">
-            <h2 className="card-title">Quick Insights</h2>
-            {overview ? (
-              <div className="insights-grid">
-                <div className="insight-item">
-                  <div className="insight-icon"><Users size={20} /></div>
-                  <div className="insight-content">
-                    <div className="insight-value">{overview.insights.avgStudentsPerSection}</div>
-                    <div className="insight-label">Avg Students/Section</div>
-                  </div>
-                </div>
-                <div className="insight-item">
-                  <div className="insight-icon"><TrendingUp size={20} /></div>
-                  <div className="insight-content">
-                    <div className="insight-value">
-                      {overview.insights.mostActiveSection?.name || 'N/A'}
-                    </div>
-                    <div className="insight-label">
-                      Most Active Section ({overview.insights.mostActiveSection?.studentCount || 0} students)
-                    </div>
-                  </div>
-                </div>
-                <div className="insight-item">
-                  <div className="insight-icon"><Users size={20} /></div>
-                  <div className="insight-content">
-                    <div className="insight-value">{overview.insights.loginsToday}</div>
-                    <div className="insight-label">Logins Today</div>
-                  </div>
-                </div>
-                <div className="insight-item">
-                  <div className="insight-icon"><BookOpen size={20} /></div>
-                  <div className="insight-content">
-                    <div className="insight-value">{overview.insights.chaptersCompletedThisWeek}</div>
-                    <div className="insight-label">Chapters This Week</div>
-                  </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-blue"><GraduationCap size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Total Professors</div>
+                  <div className="stat-value">{stats.totalProfessors}</div>
                 </div>
               </div>
-            ) : (
-              <p className="card-text">Loading insights...</p>
-            )}
-          </div>
-        </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-green"><BookOpen size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Total Sections</div>
+                  <div className="stat-value">{stats.totalSections}</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-purple"><Users size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Total Students</div>
+                  <div className="stat-value">{analytics?.totalStudents || stats.totalStudents}</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-orange"><BookOpen size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Total Chapters</div>
+                  <div className="stat-value">{analytics?.totalChapters || 0}</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-purple"><Award size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Total Achievements</div>
+                  <div className="stat-value">{analytics?.totalAchievements || 0}</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-blue"><TrendingUp size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Completion Rate</div>
+                  <div className="stat-value">{analytics?.overallCompletionRate.toFixed(1) || 0}%</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-orange"><Clock size={32} /></div>
+                <div className="stat-content">
+                  <div className="stat-label">Avg Playtime</div>
+                  <div className="stat-value">{analytics ? formatPlaytime(Math.round(analytics.averagePlaytime)) : '0h 0m'}</div>
+                </div>
+              </div>
+            </div>
 
-        <div className="content-card">
-          <h2 className="card-title">Quick Actions</h2>
-          <div className="quick-actions-grid">
-            <button className="action-button" onClick={() => navigate('/admin/professors')}>
-              <div className="action-icon"><Plus size={20} /></div>
-              <div className="action-label">Add Professor</div>
-            </button>
-            <button className="action-button" onClick={() => navigate('/admin/sections')}>
-              <div className="action-icon"><BookOpen size={20} /></div>
-              <div className="action-label">Manage Sections</div>
-            </button>
-            <button className="action-button" onClick={() => navigate('/admin/students')}>
-              <div className="action-icon"><Users size={20} /></div>
-              <div className="action-label">View All Students</div>
-            </button>
-            <button className="action-button" onClick={() => navigate('/admin/analytics')}>
-              <div className="action-icon"><BarChart3 size={20} /></div>
-              <div className="action-label">View Analytics</div>
-            </button>
-          </div>
-        </div>
+            <div className="content-grid">
+              <div className="content-card">
+                <h2 className="card-title">Recent Activity</h2>
+                {analytics && analytics.recentActivity.length > 0 ? (
+                  <div className="activity-list">
+                    {analytics.recentActivity.map((activity, index) => (
+                      <div key={index} className="activity-item">
+                        <div className="activity-icon">
+                          {activity.activityType === 'chapter' ? <BookOpen size={16} /> : <Award size={16} />}
+                        </div>
+                        <div className="activity-content">
+                          <div className="activity-text">
+                            <strong>{activity.username}</strong> {activity.activityType === 'chapter' ? 'completed' : 'unlocked'} {activity.itemName}
+                          </div>
+                          <div className="activity-time">{new Date(activity.completedAt).toLocaleString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="card-text">No recent activity</p>
+                )}
+              </div>
+
+              <div className="content-card">
+                <h2 className="card-title">Quick Insights</h2>
+                {overview ? (
+                  <div className="insights-grid">
+                    <div className="insight-item">
+                      <div className="insight-icon"><Users size={20} /></div>
+                      <div className="insight-content">
+                        <div className="insight-value">{overview.insights.avgStudentsPerSection}</div>
+                        <div className="insight-label">Avg Students/Section</div>
+                      </div>
+                    </div>
+                    <div className="insight-item">
+                      <div className="insight-icon"><TrendingUp size={20} /></div>
+                      <div className="insight-content">
+                        <div className="insight-value">
+                          {overview.insights.mostActiveSection?.name || 'N/A'}
+                        </div>
+                        <div className="insight-label">
+                          Most Active Section ({overview.insights.mostActiveSection?.studentCount || 0} students)
+                        </div>
+                      </div>
+                    </div>
+                    <div className="insight-item">
+                      <div className="insight-icon"><Users size={20} /></div>
+                      <div className="insight-content">
+                        <div className="insight-value">{overview.insights.loginsToday}</div>
+                        <div className="insight-label">Logins Today</div>
+                      </div>
+                    </div>
+                    <div className="insight-item">
+                      <div className="insight-icon"><BookOpen size={20} /></div>
+                      <div className="insight-content">
+                        <div className="insight-value">{overview.insights.chaptersCompletedThisWeek}</div>
+                        <div className="insight-label">Chapters This Week</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="card-text">Loading insights...</p>
+                )}
+              </div>
+            </div>
+
+            <div className="content-card">
+              <h2 className="card-title">Top Students</h2>
+              {analytics && analytics.topStudents.length > 0 ? (
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Playtime</th>
+                        <th>Chapters</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {analytics.topStudents.map((student) => (
+                        <tr key={student.userId}>
+                          <td>{student.username}</td>
+                          <td>{student.firstName} {student.lastName}</td>
+                          <td>{formatPlaytime(student.totalPlaytime)}</td>
+                          <td>{student.chaptersCompleted}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="card-text">No student data available</p>
+              )}
+            </div>
+
+            <div className="content-grid">
+              <div className="content-card">
+                <h2 className="card-title">Chapter Completion Rates</h2>
+                {analytics && analytics.chapterCompletionRates.length > 0 ? (
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Chapter</th>
+                          <th>Completions</th>
+                          <th>Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {analytics.chapterCompletionRates.map((chapter) => (
+                          <tr key={chapter.chapterId}>
+                            <td>{chapter.chapterName}</td>
+                            <td>{chapter.completionCount}</td>
+                            <td>{chapter.completionRate.toFixed(1)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="card-text">No chapter data available</p>
+                )}
+              </div>
+
+              <div className="content-card">
+                <h2 className="card-title">Achievement Unlock Rates</h2>
+                {analytics && analytics.achievementUnlockRates.length > 0 ? (
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Achievement</th>
+                          <th>Unlocks</th>
+                          <th>Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {analytics.achievementUnlockRates.map((achievement) => (
+                          <tr key={achievement.achievementId}>
+                            <td>{achievement.achievementName}</td>
+                            <td>{achievement.unlockCount}</td>
+                            <td>{achievement.unlockRate.toFixed(1)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="card-text">No achievement data available</p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="content-card">
           <h2 className="card-title">System Status</h2>

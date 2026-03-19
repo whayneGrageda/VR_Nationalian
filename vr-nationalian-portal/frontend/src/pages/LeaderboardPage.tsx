@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import StudentLayout from '../components/StudentLayout';
 import { useAuth } from '../contexts/AuthContext';
-import { Trophy, Zap, Users, Award, Clock, TrendingUp } from 'lucide-react';
+import { Trophy, Zap, Users, Award, TrendingUp, Medal, Crown, Star } from 'lucide-react';
 import './LeaderboardPage.css';
 
 interface LeaderboardEntry {
@@ -37,23 +37,20 @@ interface LeaderboardData {
 
 function SkeletonLeaderboard() {
   return (
-    <div className="leaderboards-grid">
+    <div className="leaderboards-container">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="leaderboard-card">
-          <div className="leaderboard-header">
-            <div className="skeleton skeleton-icon" />
-            <div className="skeleton skeleton-title" style={{ width: '150px' }} />
+        <div key={i} className="leaderboard-section">
+          <div className="section-header">
+            <div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
+            <div className="skeleton" style={{ width: '150px', height: '16px', borderRadius: '4px' }} />
           </div>
-          <div className="leaderboard-list">
+          <div className="podium-container">
             {[1, 2, 3].map((j) => (
-              <div key={j} className="leaderboard-item">
-                <div className="skeleton skeleton-rank" />
-                <div className="player-info" style={{ flex: 1 }}>
-                  <div className="skeleton skeleton-text" style={{ width: '60%', marginBottom: '8px' }} />
-                  <div className="skeleton skeleton-text" style={{ width: '40%', height: '12px' }} />
-                </div>
-                <div className="skeleton skeleton-score" />
-              </div>
+              <div key={j} className="skeleton" style={{ 
+                flex: 1,
+                height: j === 2 ? '240px' : j === 1 ? '200px' : '160px',
+                borderRadius: '12px 12px 0 0'
+              }} />
             ))}
           </div>
         </div>
@@ -110,9 +107,9 @@ export default function LeaderboardPage() {
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
+    if (rank === 1) return <Crown size={24} />;
+    if (rank === 2) return <Medal size={24} />;
+    if (rank === 3) return <Star size={24} />;
     return rank;
   };
 
@@ -154,114 +151,164 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        <div className="leaderboards-grid">
-          {/* Top Achievements */}
-          <div className="leaderboard-card">
-            <div className="leaderboard-header">
-              <Award className="leaderboard-icon" size={24} />
-              <h2 className="leaderboard-title">Most Achievements</h2>
+        <div className="leaderboards-container">
+          {/* Most Achievements - Podium Style */}
+          <div className="leaderboard-section">
+            <div className="section-header">
+              <Award className="section-icon" size={20} />
+              <div>
+                <h2 className="section-title">Most Achievements</h2>
+                <p className="section-description">Students with the highest number of unlocked achievements</p>
+              </div>
             </div>
             {data?.topAchievements && data.topAchievements.length > 0 ? (
-              <div className="leaderboard-list">
-                {data.topAchievements.map((entry) => (
-                  <div key={entry.userId} className="leaderboard-item">
+              <div className="leaderboard-content">
+                <div className="podium-container">
+                  {data.topAchievements.slice(0, 3).map((entry) => (
                     <div 
-                      className="rank-badge" 
-                      style={{ color: getRankColor(entry.rank) }}
+                      key={entry.userId} 
+                      className={`podium-item rank-${entry.rank}`}
+                      style={{ order: entry.rank === 1 ? 2 : entry.rank === 2 ? 1 : 3 }}
                     >
-                      {getRankIcon(entry.rank)}
+                      <div className="podium-rank" style={{ color: getRankColor(entry.rank) }}>
+                        {getRankIcon(entry.rank)}
+                      </div>
+                      <div className="podium-info">
+                        <div className="podium-name">{getFullName(entry)}</div>
+                        <div className="podium-score">{entry.achievementCount}</div>
+                      </div>
                     </div>
-                    <div className="player-info">
-                      <div className="player-name">{getFullName(entry)}</div>
-                      {entry.sectionName && (
-                        <div className="player-section">{entry.sectionName}</div>
-                      )}
-                    </div>
-                    <div className="player-score">
-                      <span className="score-value">{entry.achievementCount}</span>
-                      <span className="score-label">achievements</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="rankings-list">
+                  <div className="rankings-header">Other Rankings</div>
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const rank = i + 4;
+                    const entry = data.topAchievements.find(e => e.rank === rank);
+                    return (
+                      <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
+                        <div className="ranking-position">#{rank}</div>
+                        <div className="ranking-info">
+                          <div className="ranking-name">{entry ? getFullName(entry) : '—'}</div>
+                        </div>
+                        <div className="ranking-value">{entry ? entry.achievementCount : '—'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
-              <div className="empty-state">
-                <Award size={48} />
-                <p>No achievement data yet</p>
+              <div className="empty-state-compact">
+                <Award size={32} />
+                <p>No data</p>
               </div>
             )}
           </div>
 
-          {/* Top Speedrunners */}
-          <div className="leaderboard-card">
-            <div className="leaderboard-header">
-              <Zap className="leaderboard-icon" size={24} />
-              <h2 className="leaderboard-title">Fastest Completion</h2>
+          {/* Fastest Completion */}
+          <div className="leaderboard-section">
+            <div className="section-header">
+              <Zap className="section-icon" size={20} />
+              <div>
+                <h2 className="section-title">Fastest Completion</h2>
+                <p className="section-description">Students who completed all 4 chapters in the shortest time</p>
+              </div>
             </div>
             {data?.topSpeedrunners && data.topSpeedrunners.length > 0 ? (
-              <div className="leaderboard-list">
-                {data.topSpeedrunners.map((entry) => (
-                  <div key={entry.userId} className="leaderboard-item">
+              <div className="leaderboard-content">
+                <div className="podium-container">
+                  {data.topSpeedrunners.slice(0, 3).map((entry) => (
                     <div 
-                      className="rank-badge" 
-                      style={{ color: getRankColor(entry.rank) }}
+                      key={entry.userId} 
+                      className={`podium-item rank-${entry.rank}`}
+                      style={{ order: entry.rank === 1 ? 2 : entry.rank === 2 ? 1 : 3 }}
                     >
-                      {getRankIcon(entry.rank)}
+                      <div className="podium-rank" style={{ color: getRankColor(entry.rank) }}>
+                        {getRankIcon(entry.rank)}
+                      </div>
+                      <div className="podium-info">
+                        <div className="podium-name">{getFullName(entry)}</div>
+                        <div className="podium-score">{formatTime(entry.completionTimeMinutes)}</div>
+                      </div>
                     </div>
-                    <div className="player-info">
-                      <div className="player-name">{getFullName(entry)}</div>
-                      {entry.sectionName && (
-                        <div className="player-section">{entry.sectionName}</div>
-                      )}
-                    </div>
-                    <div className="player-score">
-                      <Clock size={16} />
-                      <span className="score-value">{formatTime(entry.completionTimeMinutes)}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="rankings-list">
+                  <div className="rankings-header">Other Rankings</div>
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const rank = i + 4;
+                    const entry = data.topSpeedrunners.find(e => e.rank === rank);
+                    return (
+                      <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
+                        <div className="ranking-position">#{rank}</div>
+                        <div className="ranking-info">
+                          <div className="ranking-name">{entry ? getFullName(entry) : '—'}</div>
+                        </div>
+                        <div className="ranking-value">{entry ? formatTime(entry.completionTimeMinutes) : '—'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
-              <div className="empty-state">
-                <Zap size={48} />
-                <p>No completion data yet</p>
+              <div className="empty-state-compact">
+                <Zap size={32} />
+                <p>No data</p>
               </div>
             )}
           </div>
 
           {/* Top Sections */}
-          <div className="leaderboard-card">
-            <div className="leaderboard-header">
-              <TrendingUp className="leaderboard-icon" size={24} />
-              <h2 className="leaderboard-title">Top Sections</h2>
+          <div className="leaderboard-section">
+            <div className="section-header">
+              <TrendingUp className="section-icon" size={20} />
+              <div>
+                <h2 className="section-title">Top Sections</h2>
+                <p className="section-description">Sections with the most students completing all chapters</p>
+              </div>
             </div>
             {data?.topSections && data.topSections.length > 0 ? (
-              <div className="leaderboard-list">
-                {data.topSections.map((entry) => (
-                  <div key={entry.userId} className="leaderboard-item">
+              <div className="leaderboard-content">
+                <div className="podium-container">
+                  {data.topSections.slice(0, 3).map((entry) => (
                     <div 
-                      className="rank-badge" 
-                      style={{ color: getRankColor(entry.rank) }}
+                      key={entry.userId} 
+                      className={`podium-item rank-${entry.rank}`}
+                      style={{ order: entry.rank === 1 ? 2 : entry.rank === 2 ? 1 : 3 }}
                     >
-                      {getRankIcon(entry.rank)}
-                    </div>
-                    <div className="player-info">
-                      <div className="player-name">{entry.sectionName}</div>
-                      <div className="player-section">
-                        {entry.completedStudents}/{entry.totalStudents} completed
+                      <div className="podium-rank" style={{ color: getRankColor(entry.rank) }}>
+                        {getRankIcon(entry.rank)}
+                      </div>
+                      <div className="podium-info">
+                        <div className="podium-name">{entry.sectionName}</div>
+                        <div className="podium-score">{entry.completionRate}%</div>
+                        <div className="podium-detail">{entry.completedStudents}/{entry.totalStudents}</div>
                       </div>
                     </div>
-                    <div className="player-score">
-                      <span className="score-value">{entry.completionRate}%</span>
-                      <span className="score-label">completion</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="rankings-list">
+                  <div className="rankings-header">Other Rankings</div>
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const rank = i + 4;
+                    const entry = data.topSections.find(e => e.rank === rank);
+                    return (
+                      <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
+                        <div className="ranking-position">#{rank}</div>
+                        <div className="ranking-info">
+                          <div className="ranking-name">{entry ? entry.sectionName : '—'}</div>
+                          {entry && <div className="ranking-detail">{entry.completedStudents}/{entry.totalStudents}</div>}
+                        </div>
+                        <div className="ranking-value">{entry ? `${entry.completionRate}%` : '—'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
-              <div className="empty-state">
-                <Users size={48} />
-                <p>No section data yet</p>
+              <div className="empty-state-compact">
+                <Users size={32} />
+                <p>No data</p>
               </div>
             )}
           </div>

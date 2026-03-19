@@ -127,7 +127,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         itemName: (item.tblachievements as any).achievement_name,
         completedAt: new Date(item.unlocked_at)
       }))
-    ].sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime()).slice(0, 10);
+    ].sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime()).slice(0, 5);
 
     const totalPossibleCompletions = (totalStudents || 0) * totalChapters;
     const { count: totalCompletions } = await this.supabase
