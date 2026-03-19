@@ -62,30 +62,64 @@ vr-nationalian-portal/
 ### ✅ Completed Features
 
 #### Authentication
-- Login with username/password
-- Role-based access control (Professor/Admin)
+- Login with username/password (bcrypt hashed)
+- Role-based access control (Student/Professor/Admin)
 - Session management
 - Protected routes
+- Automatic "Welcome Back" achievement on first login
+
+#### Student Features
+- Personal dashboard with progress tracking
+- View chapter completion status
+- View unlocked achievements
+- Track playtime statistics
+- Access to leaderboards
 
 #### Professor Features
-- Dashboard with statistics
+- Dashboard with section statistics
 - Section management (Create, Read, Update, Delete)
 - Student management (Create, Read, Update, Delete)
 - Filter students by section
+- View student progress and achievements
 
 #### Admin Features
-- System-wide dashboard
+- System-wide dashboard with real-time health monitoring
+- Quick insights (2x2 grid with key metrics)
+- Recent activity feed (5 most recent, green background)
 - Professor management (Create, Read, Update, Delete)
 - Access to all sections and students
-- System analytics
+- Analytics page with time-based trends and insights
+- Leaderboard system with podium-style rankings
+
+#### Analytics & Insights
+- Weekly completion trends (line chart)
+- Chapter difficulty analysis with drop-off rates
+- Achievement rarity ranking
+- At-risk student alerts
+- Playtime distribution
+- Chapter completion rates
+- Achievement unlock rates
+
+#### Leaderboard System
+- Most Achievements (top 10 students)
+- Fastest Completion (speedrunners who completed all 4 chapters)
+- Top Sections (sections with highest completion rates)
+- Podium-style display for top 3
+- Rankings list showing positions 4-10
+- Medal icons (Crown, Medal, Star) for top 3
+- Available in all three user role sidebars
 
 #### UI/UX
-- Dark theme design (inspired by modern dev tools)
-- Responsive sidebar navigation
+- Dark theme design (#111827 backgrounds, #1e293b borders)
+- Responsive sidebar navigation for all roles
 - Modal forms for CRUD operations
 - Data tables with actions
-- Empty states and loading indicators
+- Skeleton loading states
+- Empty states with placeholders
 - Error handling and validation
+- Special violet highlight for "Master of the Realm" achievement
+- Green background for recent activities
+- Lucide React icons throughout
 
 ## Setup Instructions
 
@@ -117,10 +151,34 @@ Get these values from your Supabase project settings.
 
 ### 3. Database Setup
 
-Ensure your Supabase database has all required functions from SKILL.md:
-- `fn_login()`
+Ensure your Supabase database has all required tables and functions:
+
+#### Required Tables
+- `tblusers` - User accounts (students, professors, admins)
+- `tblsections` - Class sections
+- `tblchapters` - Game chapters
+- `tblachievements` - Achievement definitions
+- `tbluserachievements` - User achievement unlocks
+- `tblcompleted_chapters` - Chapter completion tracking
+- `tbluserprofiles` - User profile data and playtime
+- `tblsessions` - Login session tracking
+
+#### Required Functions
+- `fn_login()` - Authentication with bcrypt password hashing
 - `fn_create_section()`, `fn_get_sections_by_professor()`, `fn_update_section()`, `fn_delete_section()`
 - `fn_create_student()`, `fn_get_students_by_section()`, `fn_update_student()`, `fn_delete_student()`
+- `fn_update_profile()` - Update user profile with password hashing
+
+#### Database Triggers
+Run the SQL migration to enable automatic achievement granting:
+```bash
+# In Supabase SQL Editor, run:
+# mds-and-sqls/GRANT_FIRST_LOGIN_ACHIEVEMENT.sql
+```
+
+This creates a trigger that automatically grants the "Welcome Back" achievement when students log in for the first time (works for both Unity VR and web portal).
+
+See `mds-and-sqls/ACHIEVEMENT_TRIGGER_README.md` for detailed setup instructions.
 
 ### 4. Run Development Servers
 
@@ -147,9 +205,13 @@ This builds both backend and frontend.
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - Login (professors/admins only)
+- `POST /api/auth/login` - Login (all roles)
   - Body: `{ username, password }`
   - Returns: User object with session token
+
+### Health Check
+- `GET /api/health` - System health status
+  - Returns: Database status, API uptime, active VR sessions
 
 ### Sections
 - `POST /api/sections` - Create section
@@ -175,25 +237,49 @@ This builds both backend and frontend.
   - Body: `{ username, firstName, middleInitial, lastName }`
 - `DELETE /api/professors/:id` - Delete professor
 
+### Analytics (Admin only)
+- `GET /api/analytics/admin` - Get comprehensive analytics
+  - Returns: Student counts, completion rates, top students, recent activity
+
+### Leaderboards
+- `GET /api/leaderboards` - Get all leaderboard data
+  - Returns: Top achievements, fastest completions, top sections
+
+### Student Progress
+- `GET /api/student-progress/:userId` - Get student progress
+  - Returns: Chapters completed, achievements unlocked, playtime
+
+### User Profile
+- `GET /api/user-profile/:userId` - Get user profile
+- `PUT /api/user-profile/:userId` - Update user profile
+- `PUT /api/user-profile/:userId/password` - Change password
+
 ## Access Control
 
 ### Role-Based Access
 
 - **Students (role_id = 1)**
-  - Mobile app only (Unity VR game)
-  - Cannot access web portal
+  - Unity VR game access
+  - Web portal access (view-only dashboard)
+  - View personal progress and achievements
+  - Access leaderboards
+  - Update profile and change password
 
 - **Professors (role_id = 2)**
   - Web portal access
   - Manage their own sections
   - Manage students within their sections
-  - View their dashboard
+  - View student progress and achievements
+  - View their dashboard with section statistics
+  - Access leaderboards
 
 - **Admins (role_id = 3)**
   - Web portal access
   - Manage all professors
   - Access all sections and students
-  - System-wide analytics
+  - System-wide analytics and insights
+  - Real-time health monitoring
+  - Access leaderboards
 
 ## Development
 
@@ -239,21 +325,22 @@ This builds both backend and frontend.
 
 ## Security Notes
 
-⚠️ **Current Implementation (Development Only)**
-- Passwords stored as plain text in database
-- Simple session token (MD5 hash)
-- No password strength requirements
-- No rate limiting
+✅ **Current Implementation**
+- Passwords hashed with bcrypt at database level (pgcrypto extension)
+- Session-based authentication
+- Role-based access control
+- Database-level password validation via Supabase RPC functions
+- Automatic achievement granting via database triggers
 
-🔒 **Production Requirements**
-- Hash passwords (bcrypt/argon2)
-- Implement JWT tokens
-- Add password strength validation
+🔒 **Production Recommendations**
 - Enable Row Level Security (RLS) in Supabase
-- Add rate limiting
+- Implement JWT tokens with refresh tokens
+- Add rate limiting on login endpoints
 - Implement HTTPS only
 - Add CSRF protection
-- Implement refresh tokens
+- Add password strength requirements in UI
+- Implement account lockout after failed attempts
+- Add audit logging for sensitive operations
 
 ## License
 
