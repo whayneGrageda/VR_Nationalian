@@ -334,36 +334,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="content-card">
-              <h2 className="card-title">Top Students</h2>
-              {analytics && analytics.topStudents.length > 0 ? (
-                <div className="table-container">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Username</th>
-                        <th>Name</th>
-                        <th>Playtime</th>
-                        <th>Chapters</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.topStudents.map((student) => (
-                        <tr key={student.userId}>
-                          <td>{student.username}</td>
-                          <td>{student.firstName} {student.lastName}</td>
-                          <td>{formatPlaytime(student.totalPlaytime)}</td>
-                          <td>{student.chaptersCompleted}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="card-text">No student data available</p>
-              )}
-            </div>
-
             <div className="content-grid">
               <div className="content-card">
                 <h2 className="card-title">Chapter Completion Rates</h2>
