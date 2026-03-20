@@ -10,7 +10,7 @@ export class ProfessorRepository implements IProfessorRepository {
       .from('tblusers')
       .insert({
         username: data.username,
-        password: data.password,
+        password: data.password, // Will be hashed by trigger
         email: data.email,
         role_id: 2,
         first_name: data.firstName || null,

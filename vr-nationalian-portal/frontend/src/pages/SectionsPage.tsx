@@ -143,7 +143,7 @@ export default function SectionsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             sectionName: formData.sectionName,
-            professorId: isAdmin ? formData.professorId : user?.userId 
+            professorId: isAdmin ? (formData.professorId || null) : user?.userId 
           })
         });
 
@@ -500,14 +500,13 @@ export default function SectionsPage() {
                 </div>
                 {isAdmin && !editingSection && (
                   <div className="form-group">
-                    <label className="form-label">Professor</label>
+                    <label className="form-label">Professor (Optional)</label>
                     <select
                       className="form-input"
                       value={formData.professorId}
                       onChange={(e) => setFormData({ ...formData, professorId: e.target.value })}
-                      required
                     >
-                      <option value="">Select professor</option>
+                      <option value="">Unassigned</option>
                       {professors.map((prof) => (
                         <option key={prof.userId} value={prof.userId}>
                           {prof.firstName && prof.lastName 

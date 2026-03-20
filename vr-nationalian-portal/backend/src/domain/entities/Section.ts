@@ -7,10 +7,11 @@ export interface Section {
 
 export interface CreateSectionDTO {
   sectionName: string;
-  professorId: string; // Changed to string (UUID)
+  professorId?: string; // Made optional
 }
 
 export interface UpdateSectionDTO {
   sectionId: string; // Changed to string (UUID)
-  sectionName: string;
+  sectionName?: string;
+  professorId?: string;
 }

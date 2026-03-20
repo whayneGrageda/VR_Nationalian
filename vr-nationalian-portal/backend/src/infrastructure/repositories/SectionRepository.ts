@@ -10,7 +10,7 @@ export class SectionRepository implements ISectionRepository {
       .from('tblsections')
       .insert({
         section_name: data.sectionName,
-        professor_id: data.professorId
+        professor_id: data.professorId || null
       })
       .select('section_id')
       .single();
@@ -38,12 +38,21 @@ export class SectionRepository implements ISectionRepository {
   }
 
   async updateSection(data: UpdateSectionDTO): Promise<boolean> {
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (data.sectionName !== undefined) {
+      updateData.section_name = data.sectionName;
+    }
+
+    if (data.professorId !== undefined) {
+      updateData.professor_id = data.professorId;
+    }
+
     const { error } = await this.supabase
       .from('tblsections')
-      .update({
-        section_name: data.sectionName,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('section_id', data.sectionId);
 
     if (error) throw new Error(error.message);

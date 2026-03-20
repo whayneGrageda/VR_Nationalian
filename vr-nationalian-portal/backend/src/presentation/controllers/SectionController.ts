@@ -27,8 +27,12 @@ export class SectionController {
   update = async (req: Request, res: Response): Promise<void> => {
     try {
       const sectionId = req.params.id; // Changed from parseInt
-      const { sectionName } = req.body;
-      const success = await this.sectionUseCase.updateSection({ sectionId, sectionName });
+      const { sectionName, professorId } = req.body;
+      const success = await this.sectionUseCase.updateSection({ 
+        sectionId, 
+        sectionName,
+        professorId 
+      });
       res.json({ success });
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });

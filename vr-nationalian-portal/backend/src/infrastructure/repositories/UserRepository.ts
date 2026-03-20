@@ -47,7 +47,7 @@ export class UserRepository implements IUserRepository {
       .from('tblusers')
       .insert({
         username: data.username,
-        password: data.password,
+        password: data.password, // Will be hashed by trigger
         email: data.email,
         role_id: 1,
         first_name: data.firstName,

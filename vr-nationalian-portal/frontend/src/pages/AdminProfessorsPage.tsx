@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen } from 'lucide-react';
+import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen, X } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -24,10 +24,13 @@ export default function AdminProfessorsPage() {
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
+  const [allSections, setAllSections] = useState<Section[]>([]);
   const [loadingSections, setLoadingSections] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
+  const [selectedSectionToAssign, setSelectedSectionToAssign] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -61,10 +64,20 @@ export default function AdminProfessorsPage() {
   const fetchProfessorSections = async (professorId: number) => {
     try {
       setLoadingSections(true);
-      const response = await fetch(`/api/sections/professor/${professorId}`);
-      if (!response.ok) throw new Error('Failed to load sections');
-      const data = await response.json();
-      setSections(Array.isArray(data) ? data : []);
+      const [sectionsRes, allSectionsRes] = await Promise.all([
+        fetch(`/api/sections/professor/${professorId}`),
+        fetch('/api/sections')
+      ]);
+      
+      if (!sectionsRes.ok) throw new Error('Failed to load sections');
+      
+      const professorSections = await sectionsRes.json();
+      setSections(Array.isArray(professorSections) ? professorSections : []);
+      
+      if (allSectionsRes.ok) {
+        const all = await allSectionsRes.json();
+        setAllSections(Array.isArray(all) ? all : []);
+      }
     } catch (err) {
       setError((err as Error).message);
       setSections([]);
@@ -81,6 +94,52 @@ export default function AdminProfessorsPage() {
   const handleBackToProfessors = () => {
     setSelectedProfessor(null);
     setSections([]);
+    setAllSections([]);
+  };
+
+  const handleAssignSection = async () => {
+    if (!selectedProfessor || !selectedSectionToAssign) return;
+
+    try {
+      const response = await fetch(`/api/sections/${selectedSectionToAssign}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          professorId: selectedProfessor.userId
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to assign section');
+      
+      setShowAssignModal(false);
+      setSelectedSectionToAssign('');
+      fetchProfessorSections(selectedProfessor.userId);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleRevokeSection = async (sectionId: number) => {
+    if (!confirm('Are you sure you want to revoke access to this section? The section will become unassigned.')) return;
+
+    if (!selectedProfessor) return;
+
+    try {
+      // Set professor_id to null to unassign
+      const response = await fetch(`/api/sections/${sectionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          professorId: null
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to revoke section access');
+      
+      fetchProfessorSections(selectedProfessor.userId);
+    } catch (err) {
+      setError((err as Error).message);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,6 +236,11 @@ export default function AdminProfessorsPage() {
     return name.trim();
   };
 
+  // Get sections that can be assigned (not already assigned to this professor)
+  const availableSections = allSections.filter(
+    section => !sections.some(s => s.sectionId === section.sectionId)
+  );
+
   const filteredProfessors = professors.filter(professor => {
     const fullName = getFullName(professor).toLowerCase();
     const username = professor.username.toLowerCase();
@@ -200,6 +264,9 @@ export default function AdminProfessorsPage() {
                   <h1 className="page-title">{getFullName(selectedProfessor)}</h1>
                   <p className="page-subtitle">Sections managed by this professor</p>
                 </div>
+                <button className="btn-primary" onClick={() => setShowAssignModal(true)}>
+                  + Assign Section
+                </button>
               </div>
             </div>
 
@@ -222,6 +289,7 @@ export default function AdminProfessorsPage() {
                     <tr>
                       <th>Section Name</th>
                       <th>Created</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,6 +297,17 @@ export default function AdminProfessorsPage() {
                       <tr key={section.sectionId}>
                         <td className="font-medium">{section.sectionName}</td>
                         <td>{new Date(section.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button 
+                              className="btn-icon btn-delete" 
+                              onClick={() => handleRevokeSection(section.sectionId)}
+                              title="Revoke Access"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -410,6 +489,52 @@ export default function AdminProfessorsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {showAssignModal && selectedProfessor && (
+          <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Assign Section to {getFullName(selectedProfessor)}</h2>
+                <button className="modal-close" onClick={() => setShowAssignModal(false)}>×</button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Select Section</label>
+                  <select
+                    className="form-input"
+                    value={selectedSectionToAssign}
+                    onChange={(e) => setSelectedSectionToAssign(e.target.value)}
+                  >
+                    <option value="">Choose a section...</option>
+                    {availableSections.map((section) => (
+                      <option key={section.sectionId} value={section.sectionId}>
+                        {section.sectionName}
+                      </option>
+                    ))}
+                  </select>
+                  {availableSections.length === 0 && (
+                    <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                      All sections are already assigned to this professor
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowAssignModal(false)}>
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-primary"
+                  onClick={handleAssignSection}
+                  disabled={!selectedSectionToAssign}
+                >
+                  Assign
+                </button>
+              </div>
             </div>
           </div>
         )}
