@@ -47,6 +47,8 @@ export default function SectionsPage() {
   const [error, setError] = useState('');
   const isAdmin = user?.roleName === 'admin';
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPrefix, setSelectedPrefix] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('');
 
   useEffect(() => {
     fetchSections();
@@ -223,9 +225,62 @@ export default function SectionsPage() {
     setShowModal(true);
   };
 
-  const filteredSections = sections.filter(section => 
-    section.sectionName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Extract unique prefixes and numbers from section names
+  const extractSectionParts = () => {
+    const prefixes = new Set<string>();
+    const allNumbers = new Set<string>();
+    const prefixToNumbers = new Map<string, Set<string>>();
+    
+    sections.forEach(section => {
+      // Match patterns like "INF-222", "CS101", "MATH 201", etc.
+      const match = section.sectionName.match(/^([A-Z]+)[\s-]?(\d+)/i);
+      if (match) {
+        const prefix = match[1].toUpperCase();
+        const number = match[2];
+        
+        prefixes.add(prefix);
+        allNumbers.add(number);
+        
+        if (!prefixToNumbers.has(prefix)) {
+          prefixToNumbers.set(prefix, new Set<string>());
+        }
+        prefixToNumbers.get(prefix)!.add(number);
+      }
+    });
+    
+    return {
+      prefixes: Array.from(prefixes).sort(),
+      allNumbers: Array.from(allNumbers).sort((a, b) => parseInt(a) - parseInt(b)),
+      prefixToNumbers
+    };
+  };
+
+  const { prefixes, allNumbers, prefixToNumbers } = extractSectionParts();
+  
+  // Get numbers filtered by selected prefix, or all numbers if no prefix selected
+  const availableNumbers = selectedPrefix && prefixToNumbers.has(selectedPrefix)
+    ? Array.from(prefixToNumbers.get(selectedPrefix)!).sort((a, b) => parseInt(a) - parseInt(b))
+    : allNumbers;
+
+  const filteredSections = sections.filter(section => {
+    const matchesSearch = section.sectionName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Check prefix filter
+    let matchesPrefix = true;
+    if (selectedPrefix) {
+      const match = section.sectionName.match(/^([A-Z]+)/i);
+      matchesPrefix = match ? match[1].toUpperCase() === selectedPrefix : false;
+    }
+    
+    // Check number filter
+    let matchesNumber = true;
+    if (selectedNumber) {
+      const match = section.sectionName.match(/(\d+)/);
+      matchesNumber = match ? match[1] === selectedNumber : false;
+    }
+    
+    return matchesSearch && matchesPrefix && matchesNumber;
+  });
 
   return (
     <Layout>
@@ -317,6 +372,45 @@ export default function SectionsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{ maxWidth: '300px' }}
                 />
+                {prefixes.length > 0 && (
+                  <>
+                    <label className="filter-label" style={{ marginLeft: '1rem' }}>Course:</label>
+                    <select
+                      className="filter-select"
+                      value={selectedPrefix}
+                      onChange={(e) => {
+                        setSelectedPrefix(e.target.value);
+                        setSelectedNumber(''); // Reset number when prefix changes
+                      }}
+                      style={{ minWidth: '120px' }}
+                    >
+                      <option value="">All Courses</option>
+                      {prefixes.map((prefix) => (
+                        <option key={prefix} value={prefix}>
+                          {prefix}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+                {availableNumbers.length > 0 && (
+                  <>
+                    <label className="filter-label" style={{ marginLeft: '1rem' }}>Number:</label>
+                    <select
+                      className="filter-select"
+                      value={selectedNumber}
+                      onChange={(e) => setSelectedNumber(e.target.value)}
+                      style={{ minWidth: '120px' }}
+                    >
+                      <option value="">All Numbers</option>
+                      {availableNumbers.map((number) => (
+                        <option key={number} value={number}>
+                          {number}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
             )}
 

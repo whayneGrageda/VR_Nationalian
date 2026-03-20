@@ -38,8 +38,8 @@ interface CompletedChapter {
 interface Achievement {
   achievementId: string;
   achievementName: string;
-  achievementDescription: string;
-  achievementIcon: string;
+  description?: string;
+  iconKey?: string;
 }
 
 interface UnlockedAchievement {
@@ -575,13 +575,8 @@ export default function StudentsPage() {
                         
                         return (
                           <tr key={achievement.achievementId}>
-                            <td className="font-medium">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '1.5rem' }}>{achievement.achievementIcon}</span>
-                                {achievement.achievementName}
-                              </div>
-                            </td>
-                            <td>{achievement.achievementDescription}</td>
+                            <td className="font-medium">{achievement.achievementName}</td>
+                            <td>{achievement.description || '—'}</td>
                             <td>
                               {unlocked ? (
                                 <span style={{ 
