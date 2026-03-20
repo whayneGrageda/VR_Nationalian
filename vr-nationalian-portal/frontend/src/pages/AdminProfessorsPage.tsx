@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { GraduationCap, Edit2, Trash2 } from 'lucide-react';
+import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -13,8 +13,18 @@ interface Professor {
   createdAt?: string;
 }
 
+interface Section {
+  sectionId: number;
+  sectionName: string;
+  professorId: number;
+  createdAt: string;
+}
+
 export default function AdminProfessorsPage() {
   const [professors, setProfessors] = useState<Professor[]>([]);
+  const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [loadingSections, setLoadingSections] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
@@ -26,6 +36,7 @@ export default function AdminProfessorsPage() {
     lastName: ''
   });
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchProfessors();
@@ -45,6 +56,31 @@ export default function AdminProfessorsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchProfessorSections = async (professorId: number) => {
+    try {
+      setLoadingSections(true);
+      const response = await fetch(`/api/sections/professor/${professorId}`);
+      if (!response.ok) throw new Error('Failed to load sections');
+      const data = await response.json();
+      setSections(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError((err as Error).message);
+      setSections([]);
+    } finally {
+      setLoadingSections(false);
+    }
+  };
+
+  const handleProfessorClick = (professor: Professor) => {
+    setSelectedProfessor(professor);
+    fetchProfessorSections(professor.userId);
+  };
+
+  const handleBackToProfessors = () => {
+    setSelectedProfessor(null);
+    setSections([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,9 +177,68 @@ export default function AdminProfessorsPage() {
     return name.trim();
   };
 
+  const filteredProfessors = professors.filter(professor => {
+    const fullName = getFullName(professor).toLowerCase();
+    const username = professor.username.toLowerCase();
+    const search = searchQuery.toLowerCase();
+    return fullName.includes(search) || username.includes(search);
+  });
+
   return (
     <Layout>
       <div className="management-page">
+        {selectedProfessor ? (
+          // Professor Sections View
+          <>
+            <div style={{ marginBottom: '2rem' }}>
+              <button className="btn-back" onClick={handleBackToProfessors}>
+                <ArrowLeft size={20} />
+                Back to Professors
+              </button>
+              <div className="page-header" style={{ marginBottom: 0 }}>
+                <div>
+                  <h1 className="page-title">{getFullName(selectedProfessor)}</h1>
+                  <p className="page-subtitle">Sections managed by this professor</p>
+                </div>
+              </div>
+            </div>
+
+            {error && <div className="error-banner">{error}</div>}
+
+            {loadingSections ? (
+              <div className="table-container">
+                <SkeletonTable rows={5} />
+              </div>
+            ) : sections.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon"><BookOpen size={64} /></div>
+                <h3>No sections yet</h3>
+                <p>This professor hasn't created any sections yet</p>
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Section Name</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sections.map((section) => (
+                      <tr key={section.sectionId}>
+                        <td className="font-medium">{section.sectionName}</td>
+                        <td>{new Date(section.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        ) : (
+          // Professors List View
+          <>
         <div className="page-header">
           <div>
             <h1 className="page-title">Professors</h1>
@@ -155,6 +250,20 @@ export default function AdminProfessorsPage() {
         </div>
 
         {error && <div className="error-banner">{error}</div>}
+
+        {!loading && professors.length > 0 && (
+          <div className="filter-bar">
+            <label className="filter-label">Search:</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search professors..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ maxWidth: '300px' }}
+            />
+          </div>
+        )}
 
         {loading ? (
           <div className="table-container">
@@ -169,6 +278,12 @@ export default function AdminProfessorsPage() {
               Add Professor
             </button>
           </div>
+        ) : filteredProfessors.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon"><GraduationCap size={64} /></div>
+            <h3>No professors found</h3>
+            <p>No professors match your search</p>
+          </div>
         ) : (
           <div className="table-container">
             <table className="data-table">
@@ -181,8 +296,12 @@ export default function AdminProfessorsPage() {
                 </tr>
               </thead>
               <tbody>
-                {professors.map((professor) => (
-                  <tr key={professor.userId}>
+                {filteredProfessors.map((professor) => (
+                  <tr 
+                    key={professor.userId}
+                    onClick={() => handleProfessorClick(professor)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td className="font-medium">{getFullName(professor)}</td>
                     <td><code>{professor.username}</code></td>
                     <td>
@@ -191,7 +310,7 @@ export default function AdminProfessorsPage() {
                         : 'N/A'}
                     </td>
                     <td>
-                      <div className="action-buttons">
+                      <div className="action-buttons" onClick={(e) => e.stopPropagation()}>
                         <button 
                           className="btn-icon btn-edit" 
                           onClick={() => handleEdit(professor)}
@@ -213,6 +332,8 @@ export default function AdminProfessorsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        </>
         )}
 
         {showModal && (

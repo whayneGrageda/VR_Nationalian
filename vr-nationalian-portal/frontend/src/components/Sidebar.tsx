@@ -18,15 +18,15 @@ export default function Sidebar() {
   const menuItems = isProfessor
     ? [
         { path: '/professor', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/professor/sections', label: 'Sections', icon: BookOpen },
-        { path: '/professor/students', label: 'Students', icon: Users },
+        { path: '/professor/sections', label: 'My Sections', icon: BookOpen },
+        { path: '/professor/students', label: 'My Students', icon: Users },
         { path: '/professor/leaderboards', label: 'Leaderboards', icon: Trophy },
       ]
     : [
         { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/admin/professors', label: 'Professors', icon: GraduationCap },
         { path: '/admin/sections', label: 'All Sections', icon: BookOpen },
         { path: '/admin/students', label: 'All Students', icon: Users },
+        { path: '/admin/professors', label: 'All Professors', icon: GraduationCap },
         { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
         { path: '/admin/leaderboards', label: 'Leaderboards', icon: Trophy },
       ];

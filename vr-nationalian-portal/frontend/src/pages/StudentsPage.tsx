@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap } from 'lucide-react';
+import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -35,6 +35,18 @@ interface CompletedChapter {
   score?: number;
 }
 
+interface Achievement {
+  achievementId: string;
+  achievementName: string;
+  achievementDescription: string;
+  achievementIcon: string;
+}
+
+interface UnlockedAchievement {
+  achievementId: string;
+  unlockedAt: string;
+}
+
 interface LeaderboardEntry {
   userId: string;
   rank: number;
@@ -49,6 +61,8 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [completedChapters, setCompletedChapters] = useState<CompletedChapter[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievement[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<{
     achievements: LeaderboardEntry[];
     speedrun: LeaderboardEntry[];
@@ -68,6 +82,7 @@ export default function StudentsPage() {
   });
   const [error, setError] = useState('');
   const isAdmin = user?.roleName === 'admin';
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (isAdmin) {
@@ -81,15 +96,22 @@ export default function StudentsPage() {
   useEffect(() => {
     if (!isAdmin && selectedSection) {
       fetchStudents(selectedSection);
+    } else if (isAdmin && selectedSection) {
+      // Admin can filter by section or show all
+      fetchStudents(selectedSection);
+    } else if (isAdmin && !selectedSection) {
+      // Admin with no section selected shows all students
+      fetchAllStudents();
     }
   }, [selectedSection, isAdmin]);
 
   const fetchAllSections = async () => {
     try {
-      // For admin, we need to fetch all sections from all professors
-      // Since we don't have a /sections/all endpoint, we'll fetch from the sections table directly
-      // For now, let's skip this and just use the sections from the create modal
-      setSections([]);
+      const response = await fetch('/api/sections');
+      if (response.ok) {
+        const allSections = await response.json();
+        setSections(allSections);
+      }
     } catch (err) {
       console.error('Failed to load all sections');
     }
@@ -146,8 +168,9 @@ export default function StudentsPage() {
   const fetchStudentAssessments = async (userId: string) => {
     try {
       setLoadingAssessments(true);
-      const [chaptersRes, leaderboardRes] = await Promise.all([
+      const [chaptersRes, achievementsRes, leaderboardRes] = await Promise.all([
         fetch(`/api/students/${userId}/chapters`),
+        fetch(`/api/students/${userId}/achievements`),
         fetch('/api/leaderboards')
       ]);
       
@@ -156,6 +179,12 @@ export default function StudentsPage() {
       const chaptersData = await chaptersRes.json();
       setChapters(chaptersData.chapters || []);
       setCompletedChapters(chaptersData.completed || []);
+
+      if (achievementsRes.ok) {
+        const achievementsData = await achievementsRes.json();
+        setAchievements(achievementsData.achievements || []);
+        setUnlockedAchievements(achievementsData.unlocked || []);
+      }
 
       if (leaderboardRes.ok) {
         const leaderboardData = await leaderboardRes.json();
@@ -168,6 +197,8 @@ export default function StudentsPage() {
       setError((err as Error).message);
       setChapters([]);
       setCompletedChapters([]);
+      setAchievements([]);
+      setUnlockedAchievements([]);
     } finally {
       setLoadingAssessments(false);
     }
@@ -182,6 +213,8 @@ export default function StudentsPage() {
     setSelectedStudent(null);
     setChapters([]);
     setCompletedChapters([]);
+    setAchievements([]);
+    setUnlockedAchievements([]);
     setLeaderboardData({ achievements: [], speedrun: [] });
   };
 
@@ -205,6 +238,15 @@ export default function StudentsPage() {
     if (rank === 2) return { bg: '#1e293b', border: '#64748b', text: '#cbd5e1' }; // Silver
     if (rank === 3) return { bg: '#3f2516', border: '#c2410c', text: '#fb923c' }; // Bronze
     return { bg: '#1e3a5f', border: '#3b82f6', text: '#93c5fd' }; // Default blue
+  };
+
+  const isAchievementUnlocked = (achievementId: string) => {
+    return unlockedAchievements.some(ua => ua.achievementId === achievementId);
+  };
+
+  const getAchievementUnlockedDate = (achievementId: string) => {
+    const unlocked = unlockedAchievements.find(ua => ua.achievementId === achievementId);
+    return unlocked?.unlockedAt;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -330,6 +372,13 @@ export default function StudentsPage() {
     name += ` ${student.lastName}`;
     return name;
   };
+
+  const filteredStudents = students.filter(student => {
+    const fullName = getFullName(student).toLowerCase();
+    const username = student.username.toLowerCase();
+    const search = searchQuery.toLowerCase();
+    return fullName.includes(search) || username.includes(search);
+  });
 
   return (
     <Layout>
@@ -487,6 +536,101 @@ export default function StudentsPage() {
                 </table>
               </div>
             )}
+
+            {/* Achievements Section */}
+            <div style={{ marginTop: '2rem' }}>
+              <h2 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 600, 
+                color: '#e2e8f0', 
+                marginBottom: '1rem' 
+              }}>
+                Achievements
+              </h2>
+              {loadingAssessments ? (
+                <div className="table-container">
+                  <SkeletonTable rows={3} />
+                </div>
+              ) : achievements.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon"><Award size={64} /></div>
+                  <h3>No achievements available</h3>
+                  <p>Achievements will appear here once they are added to the system</p>
+                </div>
+              ) : (
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Achievement</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Unlocked</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {achievements.map((achievement) => {
+                        const unlocked = isAchievementUnlocked(achievement.achievementId);
+                        const unlockedDate = getAchievementUnlockedDate(achievement.achievementId);
+                        
+                        return (
+                          <tr key={achievement.achievementId}>
+                            <td className="font-medium">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '1.5rem' }}>{achievement.achievementIcon}</span>
+                                {achievement.achievementName}
+                              </div>
+                            </td>
+                            <td>{achievement.achievementDescription}</td>
+                            <td>
+                              {unlocked ? (
+                                <span style={{ 
+                                  display: 'inline-flex', 
+                                  alignItems: 'center', 
+                                  gap: '0.5rem',
+                                  padding: '0.25rem 0.75rem',
+                                  background: '#422006',
+                                  border: '1px solid #f59e0b',
+                                  borderRadius: '4px',
+                                  color: '#fbbf24',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
+                                }}>
+                                  <Award size={14} />
+                                  Unlocked
+                                </span>
+                              ) : (
+                                <span style={{ 
+                                  display: 'inline-flex', 
+                                  alignItems: 'center', 
+                                  gap: '0.5rem',
+                                  padding: '0.25rem 0.75rem',
+                                  background: '#1e293b',
+                                  border: '1px solid #334155',
+                                  borderRadius: '4px',
+                                  color: '#64748b',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
+                                }}>
+                                  Locked
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              {unlockedDate ? (
+                                new Date(unlockedDate).toLocaleDateString()
+                              ) : (
+                                <span style={{ color: '#64748b' }}>—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           // Students List View
@@ -515,22 +659,30 @@ export default function StudentsPage() {
           </div>
         ) : (
           <>
-            {!isAdmin && (
-              <div className="filter-bar">
-                <label className="filter-label">Section:</label>
-                <select 
-                  className="filter-select"
-                  value={selectedSection || ''}
-                  onChange={(e) => setSelectedSection(e.target.value)}
-                >
-                  {sections.map((section) => (
-                    <option key={section.sectionId} value={section.sectionId}>
-                      {section.sectionName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <div className="filter-bar">
+              <label className="filter-label">Search:</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Search students..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ maxWidth: '300px' }}
+              />
+              <label className="filter-label" style={{ marginLeft: '1rem' }}>Section:</label>
+              <select 
+                className="filter-select"
+                value={selectedSection || ''}
+                onChange={(e) => setSelectedSection(e.target.value)}
+              >
+                {isAdmin && <option value="">All Sections</option>}
+                {sections.map((section) => (
+                  <option key={section.sectionId} value={section.sectionId}>
+                    {section.sectionName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {loading ? (
               <div className="table-container">
@@ -558,7 +710,7 @@ export default function StudentsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {students.map((student) => (
+                    {filteredStudents.map((student) => (
                       <tr 
                         key={student.userId}
                         onClick={() => handleStudentClick(student)}

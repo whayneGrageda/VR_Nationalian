@@ -5,6 +5,10 @@ export interface ProfessorDashboardStats {
   totalSections: number;
   totalStudents: number;
   activeStudents: number;
+  totalChapters: number;
+  totalAchievements: number;
+  overallCompletionRate: number;
+  averagePlaytime: number;
 }
 
 export class ProfessorStatsUseCase {
@@ -32,7 +36,11 @@ export class ProfessorStatsUseCase {
     return {
       totalSections: sections.length,
       totalStudents,
-      activeStudents
+      activeStudents,
+      totalChapters: 0,
+      totalAchievements: 0,
+      overallCompletionRate: 0,
+      averagePlaytime: 0
     };
   }
 }

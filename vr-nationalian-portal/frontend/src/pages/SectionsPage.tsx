@@ -31,7 +31,11 @@ export default function SectionsPage() {
   const [showModal, setShowModal] = useState(false);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
-  const [formData, setFormData] = useState({ sectionName: '' });
+  const [formData, setFormData] = useState({ 
+    sectionName: '',
+    professorId: '' 
+  });
+  const [professors, setProfessors] = useState<Array<{ userId: string; username: string; firstName?: string; lastName?: string }>>([]);
   const [studentFormData, setStudentFormData] = useState({
     username: '',
     password: '',
@@ -41,17 +45,38 @@ export default function SectionsPage() {
     lastName: ''
   });
   const [error, setError] = useState('');
+  const isAdmin = user?.roleName === 'admin';
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchSections();
+    if (isAdmin) {
+      fetchProfessors();
+    }
   }, [user]);
+
+  const fetchProfessors = async () => {
+    try {
+      const response = await fetch('/api/professors');
+      if (response.ok) {
+        const data = await response.json();
+        setProfessors(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch professors:', err);
+    }
+  };
 
   const fetchSections = async () => {
     if (!user) return;
     
     try {
       setLoading(true);
-      const response = await fetch(`/api/sections/professor/${user.userId}`);
+      // Admin gets all sections, professor gets only their sections
+      const endpoint = isAdmin 
+        ? '/api/sections' 
+        : `/api/sections/professor/${user.userId}`;
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -116,7 +141,7 @@ export default function SectionsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             sectionName: formData.sectionName,
-            professorId: user?.userId 
+            professorId: isAdmin ? formData.professorId : user?.userId 
           })
         });
 
@@ -124,7 +149,7 @@ export default function SectionsPage() {
       }
 
       setShowModal(false);
-      setFormData({ sectionName: '' });
+      setFormData({ sectionName: '', professorId: '' });
       setEditingSection(null);
       fetchSections();
     } catch (err) {
@@ -170,7 +195,10 @@ export default function SectionsPage() {
 
   const handleEdit = (section: Section) => {
     setEditingSection(section);
-    setFormData({ sectionName: section.sectionName });
+    setFormData({ 
+      sectionName: section.sectionName,
+      professorId: section.professorId?.toString() || ''
+    });
     setShowModal(true);
   };
 
@@ -191,9 +219,13 @@ export default function SectionsPage() {
 
   const openCreateModal = () => {
     setEditingSection(null);
-    setFormData({ sectionName: '' });
+    setFormData({ sectionName: '', professorId: '' });
     setShowModal(true);
   };
+
+  const filteredSections = sections.filter(section => 
+    section.sectionName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Layout>
@@ -274,6 +306,20 @@ export default function SectionsPage() {
 
             {error && <div className="error-banner">{error}</div>}
 
+            {!loading && sections.length > 0 && (
+              <div className="filter-bar">
+                <label className="filter-label">Search:</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Search sections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ maxWidth: '300px' }}
+                />
+              </div>
+            )}
+
             {loading ? (
               <div className="table-container">
                 <SkeletonTable rows={5} />
@@ -287,6 +333,12 @@ export default function SectionsPage() {
                   Create Section
                 </button>
               </div>
+            ) : filteredSections.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon"><BookOpen size={64} /></div>
+                <h3>No sections found</h3>
+                <p>No sections match your search</p>
+              </div>
             ) : (
               <div className="table-container">
                 <table className="data-table">
@@ -298,7 +350,7 @@ export default function SectionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sections.map((section) => (
+                    {filteredSections.map((section) => (
                       <tr 
                         key={section.sectionId}
                         onClick={() => handleSectionClick(section)}
@@ -347,11 +399,31 @@ export default function SectionsPage() {
                     type="text"
                     className="form-input"
                     value={formData.sectionName}
-                    onChange={(e) => setFormData({ sectionName: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, sectionName: e.target.value })}
                     placeholder="e.g., CS101-A, Math 201"
                     required
                   />
                 </div>
+                {isAdmin && !editingSection && (
+                  <div className="form-group">
+                    <label className="form-label">Professor</label>
+                    <select
+                      className="form-input"
+                      value={formData.professorId}
+                      onChange={(e) => setFormData({ ...formData, professorId: e.target.value })}
+                      required
+                    >
+                      <option value="">Select professor</option>
+                      {professors.map((prof) => (
+                        <option key={prof.userId} value={prof.userId}>
+                          {prof.firstName && prof.lastName 
+                            ? `${prof.firstName} ${prof.lastName} (${prof.username})`
+                            : prof.username}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="modal-footer">
                   <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
                     Cancel

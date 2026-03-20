@@ -7,4 +7,8 @@ export class AnalyticsUseCase {
   async getAdminAnalytics(): Promise<AdminAnalytics> {
     return this.analyticsRepository.getAdminAnalytics();
   }
+
+  async getProfessorAnalytics(professorId: string): Promise<AdminAnalytics> {
+    return this.analyticsRepository.getProfessorAnalytics(professorId);
+  }
 }

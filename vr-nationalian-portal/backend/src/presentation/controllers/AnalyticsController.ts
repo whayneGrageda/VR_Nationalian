@@ -12,4 +12,14 @@ export class AnalyticsController {
       res.status(400).json({ error: (error as Error).message });
     }
   };
+
+  getProfessorAnalytics = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { professorId } = req.params;
+      const analytics = await this.analyticsUseCase.getProfessorAnalytics(professorId);
+      res.json(analytics);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
 }

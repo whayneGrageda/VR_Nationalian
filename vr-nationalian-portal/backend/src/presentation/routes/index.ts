@@ -46,6 +46,7 @@ export function createRoutes(
   router.get('/students/:userId/achievements', studentProgressController.getAchievementsWithProgress);
 
   router.get('/analytics/admin', analyticsController.getAdminAnalytics);
+  router.get('/analytics/professor/:professorId', analyticsController.getProfessorAnalytics);
 
   router.post('/sections', sectionController.create);
   router.get('/sections', sectionController.getAll);
