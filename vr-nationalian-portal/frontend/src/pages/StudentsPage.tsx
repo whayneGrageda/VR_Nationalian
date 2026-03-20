@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BookOpen, Edit2, Trash2 } from 'lucide-react';
+import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -22,11 +22,38 @@ interface Section {
   sectionName: string;
 }
 
+interface Chapter {
+  chapterId: number;
+  chapterName: string;
+  chapterNumber: number;
+  description?: string;
+}
+
+interface CompletedChapter {
+  chapterId: number;
+  completedAt: string;
+  score?: number;
+}
+
+interface LeaderboardEntry {
+  userId: string;
+  rank: number;
+  value: number;
+}
+
 export default function StudentsPage() {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [completedChapters, setCompletedChapters] = useState<CompletedChapter[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<{
+    achievements: LeaderboardEntry[];
+    speedrun: LeaderboardEntry[];
+  }>({ achievements: [], speedrun: [] });
+  const [loadingAssessments, setLoadingAssessments] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -114,6 +141,70 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchStudentAssessments = async (userId: string) => {
+    try {
+      setLoadingAssessments(true);
+      const [chaptersRes, leaderboardRes] = await Promise.all([
+        fetch(`/api/students/${userId}/chapters`),
+        fetch('/api/leaderboards')
+      ]);
+      
+      if (!chaptersRes.ok) throw new Error('Failed to load assessments');
+      
+      const chaptersData = await chaptersRes.json();
+      setChapters(chaptersData.chapters || []);
+      setCompletedChapters(chaptersData.completed || []);
+
+      if (leaderboardRes.ok) {
+        const leaderboardData = await leaderboardRes.json();
+        setLeaderboardData({
+          achievements: leaderboardData.topAchievements || [],
+          speedrun: leaderboardData.topSpeedrunners || []
+        });
+      }
+    } catch (err) {
+      setError((err as Error).message);
+      setChapters([]);
+      setCompletedChapters([]);
+    } finally {
+      setLoadingAssessments(false);
+    }
+  };
+
+  const handleStudentClick = (student: Student) => {
+    setSelectedStudent(student);
+    fetchStudentAssessments(student.userId);
+  };
+
+  const handleBackToStudents = () => {
+    setSelectedStudent(null);
+    setChapters([]);
+    setCompletedChapters([]);
+    setLeaderboardData({ achievements: [], speedrun: [] });
+  };
+
+  const isChapterCompleted = (chapterId: number) => {
+    return completedChapters.some(cc => cc.chapterId === chapterId);
+  };
+
+  const getChapterScore = (chapterId: number) => {
+    const completed = completedChapters.find(cc => cc.chapterId === chapterId);
+    return completed?.score;
+  };
+
+  const getLeaderboardRanks = (userId: string) => {
+    const achievementRank = leaderboardData.achievements.find(e => e.userId === userId);
+    const speedrunRank = leaderboardData.speedrun.find(e => e.userId === userId);
+    return { achievementRank, speedrunRank };
+  };
+
+  const getRankColor = (rank: number) => {
+    if (rank === 1) return { bg: '#422006', border: '#f59e0b', text: '#fbbf24' }; // Gold
+    if (rank === 2) return { bg: '#1e293b', border: '#64748b', text: '#cbd5e1' }; // Silver
+    if (rank === 3) return { bg: '#3f2516', border: '#c2410c', text: '#fb923c' }; // Bronze
+    return { bg: '#1e3a5f', border: '#3b82f6', text: '#93c5fd' }; // Default blue
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -243,6 +334,163 @@ export default function StudentsPage() {
   return (
     <Layout>
       <div className="management-page">
+        {selectedStudent ? (
+          // Student Assessment View
+          <>
+            <div style={{ marginBottom: '2rem' }}>
+              <button className="btn-back" onClick={handleBackToStudents}>
+                <ArrowLeft size={20} />
+                Back to Students
+              </button>
+              <div className="page-header" style={{ marginBottom: 0 }}>
+                <div>
+                  <h1 className="page-title">{getFullName(selectedStudent)}</h1>
+                  <p className="page-subtitle">Chapter Progress & Assessments</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {(() => {
+                    const { achievementRank, speedrunRank } = getLeaderboardRanks(selectedStudent.userId);
+                    return (
+                      <>
+                        {achievementRank && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            background: getRankColor(achievementRank.rank).bg,
+                            border: `1px solid ${getRankColor(achievementRank.rank).border}`,
+                            borderRadius: '6px',
+                            color: getRankColor(achievementRank.rank).text,
+                            fontSize: '0.875rem',
+                            fontWeight: 600
+                          }}>
+                            <Medal size={18} />
+                            #{achievementRank.rank} Achievements
+                          </div>
+                        )}
+                        {speedrunRank && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            background: getRankColor(speedrunRank.rank).bg,
+                            border: `1px solid ${getRankColor(speedrunRank.rank).border}`,
+                            borderRadius: '6px',
+                            color: getRankColor(speedrunRank.rank).text,
+                            fontSize: '0.875rem',
+                            fontWeight: 600
+                          }}>
+                            <Zap size={18} />
+                            #{speedrunRank.rank} Speedrun
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {error && <div className="error-banner">{error}</div>}
+
+            {loadingAssessments ? (
+              <div className="table-container">
+                <SkeletonTable rows={5} />
+              </div>
+            ) : chapters.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon"><Target size={64} /></div>
+                <h3>No chapters available</h3>
+                <p>Chapters will appear here once they are added to the system</p>
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Chapter</th>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Score</th>
+                      <th>Completed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chapters.map((chapter) => {
+                      const completed = isChapterCompleted(chapter.chapterId);
+                      const score = getChapterScore(chapter.chapterId);
+                      const completedData = completedChapters.find(cc => cc.chapterId === chapter.chapterId);
+                      
+                      return (
+                        <tr key={chapter.chapterId}>
+                          <td className="font-medium">Chapter {chapter.chapterNumber}</td>
+                          <td>{chapter.chapterName}</td>
+                          <td>
+                            {completed ? (
+                              <span style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '0.5rem',
+                                padding: '0.25rem 0.75rem',
+                                background: '#064e3b',
+                                border: '1px solid #059669',
+                                borderRadius: '4px',
+                                color: '#6ee7b7',
+                                fontSize: '0.75rem',
+                                fontWeight: 600
+                              }}>
+                                <Trophy size={14} />
+                                Completed
+                              </span>
+                            ) : (
+                              <span style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '0.5rem',
+                                padding: '0.25rem 0.75rem',
+                                background: '#1e293b',
+                                border: '1px solid #334155',
+                                borderRadius: '4px',
+                                color: '#64748b',
+                                fontSize: '0.75rem',
+                                fontWeight: 600
+                              }}>
+                                In Progress
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {score !== undefined ? (
+                              <span style={{ 
+                                color: score >= 80 ? '#6ee7b7' : score >= 60 ? '#fbbf24' : '#f87171',
+                                fontWeight: 600
+                              }}>
+                                {score}%
+                              </span>
+                            ) : (
+                              <span style={{ color: '#64748b' }}>—</span>
+                            )}
+                          </td>
+                          <td>
+                            {completedData ? (
+                              new Date(completedData.completedAt).toLocaleDateString()
+                            ) : (
+                              <span style={{ color: '#64748b' }}>—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        ) : (
+          // Students List View
+          <>
         <div className="page-header">
           <div>
             <h1 className="page-title">Students</h1>
@@ -311,7 +559,11 @@ export default function StudentsPage() {
                   </thead>
                   <tbody>
                     {students.map((student) => (
-                      <tr key={student.userId}>
+                      <tr 
+                        key={student.userId}
+                        onClick={() => handleStudentClick(student)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <td className="font-medium">{getFullName(student)}</td>
                         <td><code>{student.username}</code></td>
                         {isAdmin && (
@@ -321,7 +573,7 @@ export default function StudentsPage() {
                         )}
                         <td>{student.email || '—'}</td>
                         <td>
-                          <div className="action-buttons">
+                          <div className="action-buttons" onClick={(e) => e.stopPropagation()}>
                             <button 
                               className="btn-icon btn-edit" 
                               onClick={() => handleEdit(student)}
@@ -345,6 +597,8 @@ export default function StudentsPage() {
               </div>
             )}
           </>
+        )}
+        </>
         )}
 
         {showModal && (
