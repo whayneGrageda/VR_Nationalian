@@ -57,6 +57,7 @@ export function createRoutes(
   router.post('/students', studentController.create);
   router.get('/students', studentController.getAll);
   router.get('/students/section/:sectionId', studentController.getBySection);
+  router.get('/students/professor/:professorId', studentController.getByProfessor);
   router.put('/students/:id', studentController.update);
   router.delete('/students/:id', studentController.delete);
 

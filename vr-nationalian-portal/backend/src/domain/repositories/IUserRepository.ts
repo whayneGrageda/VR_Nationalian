@@ -5,6 +5,7 @@ export interface IUserRepository {
   createStudent(data: CreateStudentDTO): Promise<string>;
   getStudentsBySection(sectionId: string): Promise<User[]>;
   getAllStudents(): Promise<User[]>;
+  getStudentsByProfessor(professorId: string): Promise<User[]>;
   updateStudent(data: UpdateStudentDTO): Promise<boolean>;
   deleteStudent(userId: string): Promise<boolean>;
   getStudentCount(): Promise<number>;

@@ -235,4 +235,50 @@ export class UserRepository implements IUserRepository {
 
     if (error) throw new Error(error.message);
   }
+
+  async getStudentsByProfessor(professorId: string): Promise<User[]> {
+    // Get all sections for this professor
+    const { data: sections, error: sectionsError } = await this.supabase
+      .from('tblsections')
+      .select('section_id')
+      .eq('professor_id', professorId);
+
+    if (sectionsError) throw new Error(sectionsError.message);
+    if (!sections || sections.length === 0) return [];
+
+    const sectionIds = sections.map(s => s.section_id);
+
+    // Get all students in those sections
+    const { data, error } = await this.supabase
+      .from('tblusers')
+      .select(`
+        user_id,
+        username,
+        email,
+        first_name,
+        middle_initial,
+        last_name,
+        section_id,
+        created_at,
+        tblsections!tblusers_section_id_fkey(section_name)
+      `)
+      .eq('role_id', 1)
+      .in('section_id', sectionIds)
+      .order('last_name', { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    return data.map((student: any) => ({
+      userId: student.user_id,
+      username: student.username,
+      email: student.email,
+      roleId: 1,
+      roleName: 'student',
+      firstName: student.first_name,
+      middleInitial: student.middle_initial,
+      lastName: student.last_name,
+      sectionId: student.section_id,
+      sectionName: student.tblsections?.section_name
+    }));
+  }
 }

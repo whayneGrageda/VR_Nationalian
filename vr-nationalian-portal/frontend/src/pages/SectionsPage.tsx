@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus } from 'lucide-react';
+import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -23,6 +24,7 @@ interface Student {
 
 export default function SectionsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedSection, setSelectedSection] = useState<Section | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -122,6 +124,13 @@ export default function SectionsPage() {
   const handleBackToSections = () => {
     setSelectedSection(null);
     setStudents([]);
+  };
+
+  const handleStudentClick = (student: Student) => {
+    // Navigate to students page with this student's assessment view
+    // Use role-based path
+    const studentsPath = isAdmin ? '/admin/students' : '/professor/students';
+    navigate(studentsPath, { state: { selectedStudent: student } });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -329,16 +338,26 @@ export default function SectionsPage() {
                       <th>Username</th>
                       <th>Name</th>
                       <th>Email</th>
+                      <th style={{ width: '50px' }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {students.map((student) => (
-                      <tr key={student.userId}>
+                      <tr 
+                        key={student.userId}
+                        onClick={() => handleStudentClick(student)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <td className="font-medium">{student.username}</td>
                         <td>
                           {student.firstName} {student.middleInitial ? `${student.middleInitial}. ` : ''}{student.lastName}
                         </td>
                         <td>{student.email}</td>
+                        <td>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <ChevronRight size={20} color="#3b82f6" />
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

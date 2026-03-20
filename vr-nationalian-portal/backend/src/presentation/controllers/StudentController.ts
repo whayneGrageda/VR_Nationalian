@@ -68,4 +68,14 @@ export class StudentController {
       res.status(400).json({ error: (error as Error).message });
     }
   };
+
+  getByProfessor = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const professorId = req.params.professorId;
+      const students = await this.studentUseCase.getStudentsByProfessor(professorId);
+      res.json(students);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
 }

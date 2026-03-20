@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award } from 'lucide-react';
@@ -55,6 +56,7 @@ interface LeaderboardEntry {
 
 export default function StudentsPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const [students, setStudents] = useState<Student[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -91,9 +93,20 @@ export default function StudentsPage() {
       fetchAllStudents();
       fetchAllSections();
     } else {
+      fetchProfessorStudents();
       fetchSections();
     }
   }, [user, isAdmin]);
+
+  // Handle navigation from sections page
+  useEffect(() => {
+    const state = location.state as { selectedStudent?: Student };
+    if (state?.selectedStudent) {
+      handleStudentClick(state.selectedStudent);
+      // Clear the state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (!isAdmin && selectedSection) {
@@ -144,12 +157,29 @@ export default function StudentsPage() {
       const response = await fetch(`/api/sections/professor/${user.userId}`);
       const data = await response.json();
       setSections(data);
-      if (data.length > 0) {
-        setSelectedSection(data[0].sectionId);
-      }
-      setLoading(false);
     } catch (err) {
       setError('Failed to load sections');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProfessorStudents = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/students/professor/${user.userId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to load students');
+      }
+      const data = await response.json();
+      setStudents(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError((err as Error).message);
+      setStudents([]);
+    } finally {
       setLoading(false);
     }
   };

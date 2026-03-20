@@ -23,4 +23,8 @@ export class StudentUseCase {
   async getAllStudents(): Promise<User[]> {
     return this.userRepository.getAllStudents();
   }
+
+  async getStudentsByProfessor(professorId: string): Promise<User[]> {
+    return this.userRepository.getStudentsByProfessor(professorId);
+  }
 }
