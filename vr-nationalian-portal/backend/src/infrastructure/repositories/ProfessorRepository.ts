@@ -61,6 +61,15 @@ export class ProfessorRepository implements IProfessorRepository {
   }
 
   async deleteProfessor(userId: string): Promise<boolean> {
+    // First, unassign all sections from this professor
+    const { error: sectionError } = await this.supabase
+      .from('tblsections')
+      .update({ professor_id: null })
+      .eq('professor_id', userId);
+
+    if (sectionError) throw new Error(sectionError.message);
+
+    // Then delete the professor
     const { error } = await this.supabase
       .from('tblusers')
       .delete()

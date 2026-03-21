@@ -34,6 +34,7 @@ export default function AdminProfessorsPage() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
+    email: '',
     firstName: '',
     middleInitial: '',
     lastName: ''
@@ -167,10 +168,10 @@ export default function AdminProfessorsPage() {
           body: JSON.stringify({
             username: formData.username,
             password: formData.password,
+            email: formData.email,
             firstName: formData.firstName,
             middleInitial: formData.middleInitial || null,
-            lastName: formData.lastName,
-            roleId: 2
+            lastName: formData.lastName
           })
         });
 
@@ -190,6 +191,7 @@ export default function AdminProfessorsPage() {
     setFormData({
       username: professor.username,
       password: '',
+      email: '',
       firstName: professor.firstName || '',
       middleInitial: professor.middleInitial || '',
       lastName: professor.lastName || ''
@@ -222,6 +224,7 @@ export default function AdminProfessorsPage() {
     setFormData({
       username: '',
       password: '',
+      email: '',
       firstName: '',
       middleInitial: '',
       lastName: ''
@@ -436,17 +439,30 @@ export default function AdminProfessorsPage() {
                     />
                   </div>
                   {!editingProfessor && (
-                    <div className="form-group">
-                      <label className="form-label">Password *</label>
-                      <input
-                        type="password"
-                        className="form-input"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        placeholder="Enter password"
-                        required
-                      />
-                    </div>
+                    <>
+                      <div className="form-group">
+                        <label className="form-label">Password *</label>
+                        <input
+                          type="password"
+                          className="form-input"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="Enter password"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Email *</label>
+                        <input
+                          type="email"
+                          className="form-input"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="professor@example.com"
+                          required
+                        />
+                      </div>
+                    </>
                   )}
                   <div className="form-group">
                     <label className="form-label">First Name</label>
