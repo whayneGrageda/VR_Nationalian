@@ -11,6 +11,7 @@ import { AnalyticsController } from '../controllers/AnalyticsController';
 import { HealthController } from '../controllers/HealthController';
 import { LeaderboardController } from '../controllers/LeaderboardController';
 import { LogoutController } from '../controllers/LogoutController';
+import { QuizScoreController } from '../controllers/QuizScoreController';
 
 export function createRoutes(
   authController: AuthController,
@@ -24,7 +25,8 @@ export function createRoutes(
   analyticsController: AnalyticsController,
   healthController: HealthController,
   leaderboardController: LeaderboardController,
-  logoutController: LogoutController
+  logoutController: LogoutController,
+  quizScoreController: QuizScoreController
 ): Router {
   const router = Router();
 
@@ -65,6 +67,10 @@ export function createRoutes(
   router.get('/professors', professorController.getAll);
   router.put('/professors/:id', professorController.update);
   router.delete('/professors/:id', professorController.delete);
+
+  router.get('/quiz-scores', quizScoreController.getAllStudentsQuizScores);
+  router.get('/quiz-scores/professor/:professorId', quizScoreController.getProfessorStudentsQuizScores);
+  router.get('/quiz-scores/:userId', quizScoreController.getStudentQuizScores);
 
   return router;
 }

@@ -12,6 +12,7 @@ import StudentAchievements from './pages/student/StudentAchievements';
 import StudentAssessments from './pages/student/StudentAssessments';
 import StudentSettings from './pages/student/StudentSettings';
 import LeaderboardPage from './pages/LeaderboardPage';
+import ChaptersPage from './pages/ChaptersPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppRoutes() {
@@ -127,6 +128,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/professor/chapters"
+        element={
+          <ProtectedRoute allowedRoles={[2]}>
+            <ChaptersPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Admin Routes */}
       <Route
@@ -174,6 +183,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={[3]}>
             <LeaderboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/chapters"
+        element={
+          <ProtectedRoute allowedRoles={[3]}>
+            <ChaptersPage />
           </ProtectedRoute>
         }
       />

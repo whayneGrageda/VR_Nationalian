@@ -34,6 +34,8 @@ interface CompletedChapter {
   chapterId: number;
   completedAt: string;
   score?: number;
+  totalQuestions?: number;
+  percentage?: number;
 }
 
 interface Achievement {
@@ -59,7 +61,6 @@ export default function StudentsPage() {
   const location = useLocation();
   const [students, setStudents] = useState<Student[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [completedChapters, setCompletedChapters] = useState<CompletedChapter[]>([]);
@@ -107,18 +108,6 @@ export default function StudentsPage() {
       window.history.replaceState({}, document.title);
     }
   }, [location]);
-
-  useEffect(() => {
-    if (!isAdmin && selectedSection) {
-      fetchStudents(selectedSection);
-    } else if (isAdmin && selectedSection) {
-      // Admin can filter by section or show all
-      fetchStudents(selectedSection);
-    } else if (isAdmin && !selectedSection) {
-      // Admin with no section selected shows all students
-      fetchAllStudents();
-    }
-  }, [selectedSection, isAdmin]);
 
   const fetchAllSections = async () => {
     try {
@@ -184,33 +173,34 @@ export default function StudentsPage() {
     }
   };
 
-  const fetchStudents = async (sectionId: string) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/students/section/${sectionId}`);
-      const data = await response.json();
-      setStudents(data);
-    } catch (err) {
-      setError('Failed to load students');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchStudentAssessments = async (userId: string) => {
     try {
       setLoadingAssessments(true);
-      const [chaptersRes, achievementsRes, leaderboardRes] = await Promise.all([
+      const [chaptersRes, achievementsRes, leaderboardRes, quizScoresRes] = await Promise.all([
         fetch(`/api/students/${userId}/chapters`),
         fetch(`/api/students/${userId}/achievements`),
-        fetch('/api/leaderboards')
+        fetch('/api/leaderboards'),
+        fetch(`/api/quiz-scores/${userId}`)
       ]);
       
       if (!chaptersRes.ok) throw new Error('Failed to load assessments');
       
       const chaptersData = await chaptersRes.json();
+      const quizScores = quizScoresRes.ok ? await quizScoresRes.json() : [];
+      
+      // Merge quiz scores with chapter completion data
+      const completedWithScores = (chaptersData.completed || []).map((cc: any) => {
+        const quizScore = quizScores.find((qs: any) => qs.chapterId === cc.chapterId);
+        return {
+          ...cc,
+          score: quizScore?.score,
+          totalQuestions: quizScore?.totalQuestions,
+          percentage: quizScore?.percentage
+        };
+      });
+      
       setChapters(chaptersData.chapters || []);
-      setCompletedChapters(chaptersData.completed || []);
+      setCompletedChapters(completedWithScores);
 
       if (achievementsRes.ok) {
         const achievementsData = await achievementsRes.json();
@@ -256,7 +246,10 @@ export default function StudentsPage() {
 
   const getChapterScore = (chapterId: number) => {
     const completed = completedChapters.find(cc => cc.chapterId === chapterId);
-    return completed?.score;
+    if (completed?.score !== undefined && completed?.totalQuestions !== undefined) {
+      return `${completed.score}/${completed.totalQuestions}`;
+    }
+    return null;
   };
 
   const getLeaderboardRanks = (userId: string) => {
@@ -320,7 +313,11 @@ export default function StudentsPage() {
 
       setShowModal(false);
       resetForm();
-      if (selectedSection) fetchStudents(selectedSection);
+      if (isAdmin) {
+        fetchAllStudents();
+      } else {
+        fetchProfessorStudents();
+      }
     } catch (err) {
       setError((err as Error).message);
     }
@@ -355,8 +352,8 @@ export default function StudentsPage() {
       if (!response.ok) throw new Error('Failed to delete student');
       if (isAdmin) {
         fetchAllStudents();
-      } else if (selectedSection) {
-        fetchStudents(selectedSection);
+      } else {
+        fetchProfessorStudents();
       }
     } catch (err) {
       setError((err as Error).message);
@@ -394,7 +391,7 @@ export default function StudentsPage() {
       firstName: '',
       middleInitial: '',
       lastName: '',
-      sectionId: selectedSection || ''
+      sectionId: ''
     });
   };
 
@@ -600,12 +597,12 @@ export default function StudentsPage() {
                             )}
                           </td>
                           <td>
-                            {score !== undefined ? (
+                            {score ? (
                               <span style={{ 
-                                color: score >= 80 ? '#6ee7b7' : score >= 60 ? '#fbbf24' : '#f87171',
+                                color: score.includes('/') ? '#6ee7b7' : '#64748b',
                                 fontWeight: 600
                               }}>
-                                {score}%
+                                {score}
                               </span>
                             ) : (
                               <span style={{ color: '#64748b' }}>—</span>
