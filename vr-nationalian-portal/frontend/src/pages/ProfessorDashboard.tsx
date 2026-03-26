@@ -100,10 +100,10 @@ export default function ProfessorDashboard() {
 
         {loading ? (
           <>
-            <SkeletonStats count={7} />
-            <div className="content-card">
-              <div className="skeleton skeleton-title" style={{ marginBottom: '1rem' }} />
-              <div style={{ height: '200px' }} className="skeleton" />
+            <SkeletonStats count={5} />
+            <div className="content-grid">
+              <SkeletonCard />
+              <SkeletonCard />
             </div>
             <div className="content-grid">
               <SkeletonCard />
@@ -130,7 +130,7 @@ export default function ProfessorDashboard() {
               <div className="stat-card">
                 <div className="stat-icon stat-icon-blue"><CheckCircle size={32} /></div>
                 <div className="stat-content">
-                  <div className="stat-label">Active Students</div>
+                  <div className="stat-label">Active Students (7 days)</div>
                   <div className="stat-value">{stats.activeStudents}</div>
                 </div>
               </div>
@@ -148,53 +148,85 @@ export default function ProfessorDashboard() {
                   <div className="stat-value">{analytics?.totalAchievements || 0}</div>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon stat-icon-blue"><TrendingUp size={32} /></div>
-                <div className="stat-content">
-                  <div className="stat-label">Completion Rate</div>
-                  <div className="stat-value">{analytics?.overallCompletionRate.toFixed(1) || 0}%</div>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon stat-icon-orange"><Clock size={32} /></div>
-                <div className="stat-content">
-                  <div className="stat-label">Avg Playtime</div>
-                  <div className="stat-value">{analytics ? formatPlaytime(Math.round(analytics.averagePlaytime)) : '0h 0m'}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="content-card">
-              <h2 className="card-title">Recent Activity</h2>
-              {analytics && analytics.recentActivity.length > 0 ? (
-                <div className="activity-list">
-                  {analytics.recentActivity.map((activity, index) => {
-                    const isMasterOfRealm = activity.activityType === 'achievement' && 
-                      activity.itemName.toLowerCase().includes('master of the realm');
-                    
-                    return (
-                      <div key={index} className={`activity-item ${isMasterOfRealm ? 'activity-special' : ''}`}>
-                        <div className="activity-icon">
-                          {activity.activityType === 'chapter' ? <BookOpen size={16} /> : <Award size={16} />}
-                        </div>
-                        <div className="activity-content">
-                          <div className="activity-text">
-                            <strong>{activity.username}</strong> {activity.activityType === 'chapter' ? 'completed' : 'unlocked'} {activity.itemName}
-                          </div>
-                          <div className="activity-time">{new Date(activity.completedAt).toLocaleString()}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="card-text">No recent activity</p>
-              )}
             </div>
 
             <div className="content-grid">
               <div className="content-card">
-                <h2 className="card-title">Chapter Completion Rates</h2>
+                <h2 className="card-title">Recent Activity</h2>
+                {analytics && analytics.recentActivity.length > 0 ? (
+                  <div className="activity-list">
+                    {analytics.recentActivity.map((activity, index) => {
+                      const isMasterOfRealm = activity.activityType === 'achievement' && 
+                        activity.itemName.toLowerCase().includes('master of the realm');
+                      
+                      return (
+                        <div key={index} className={`activity-item ${isMasterOfRealm ? 'activity-special' : ''}`}>
+                          <div className="activity-icon">
+                            {activity.activityType === 'chapter' ? <BookOpen size={16} /> : <Award size={16} />}
+                          </div>
+                          <div className="activity-content">
+                            <div className="activity-text">
+                              <strong>{activity.username}</strong> {activity.activityType === 'chapter' ? 'completed' : 'unlocked'} {activity.itemName}
+                            </div>
+                            <div className="activity-time">{new Date(activity.completedAt).toLocaleString()}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="card-text">No recent activity</p>
+                )}
+              </div>
+
+              <div className="content-card">
+                <h2 className="card-title">Quick Insights</h2>
+                <div className="insights-grid">
+                  <div className="insight-item">
+                    <div className="insight-icon"><BookOpen size={24} /></div>
+                    <div className="insight-content">
+                      <div className="insight-value">{stats.totalSections}</div>
+                      <div className="insight-label">Total Sections</div>
+                    </div>
+                  </div>
+                  <div className="insight-item">
+                    <div className="insight-icon"><Users size={24} /></div>
+                    <div className="insight-content">
+                      <div className="insight-value">{stats.activeStudents}</div>
+                      <div className="insight-label">Active Students (7 days)</div>
+                    </div>
+                  </div>
+                  <div className="insight-item">
+                    <div className="insight-icon"><Clock size={24} /></div>
+                    <div className="insight-content">
+                      <div className="insight-value">{analytics ? formatPlaytime(Math.round(analytics.averagePlaytime)) : '0h 0m'}</div>
+                      <div className="insight-label">Avg Playtime</div>
+                    </div>
+                  </div>
+                  <div className="insight-item">
+                    <div className="insight-icon"><TrendingUp size={24} /></div>
+                    <div className="insight-content">
+                      <div className="insight-value">{analytics?.overallCompletionRate.toFixed(1) || 0}%</div>
+                      <div className="insight-label">Completion Rate</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="content-grid">
+              <div className="content-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h2 className="card-title" style={{ margin: 0 }}>Chapter Completion Rates</h2>
+                  {analytics && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Overall:</span>
+                      <span style={{ color: '#10b981', fontSize: '1.25rem', fontWeight: '600' }}>
+                        {analytics.overallCompletionRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
                 {analytics && analytics.chapterCompletionRates.length > 0 ? (
                   <div className="table-container">
                     <table className="data-table">

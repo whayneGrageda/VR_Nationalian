@@ -13,6 +13,7 @@ import StudentAssessments from './pages/student/StudentAssessments';
 import StudentSettings from './pages/student/StudentSettings';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ChaptersPage from './pages/ChaptersPage';
+import ArchivesPage from './pages/ArchivesPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppRoutes() {
@@ -136,6 +137,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/professor/archives"
+        element={
+          <ProtectedRoute allowedRoles={[2]}>
+            <ArchivesPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Admin Routes */}
       <Route
@@ -191,6 +200,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={[3]}>
             <ChaptersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/archives"
+        element={
+          <ProtectedRoute allowedRoles={[3]}>
+            <ArchivesPage />
           </ProtectedRoute>
         }
       />

@@ -14,4 +14,9 @@ export interface IUserRepository {
   updateProfile(data: UpdateProfileDTO): Promise<boolean>;
   changePassword(data: ChangePasswordDTO): Promise<boolean>;
   deactivateSession(sessionToken: string): Promise<void>;
+  getArchivedUsers(roleId: number): Promise<any[]>;
+  getArchivedStudentsByProfessor(professorId: string): Promise<any[]>;
+  archiveUser(userId: string): Promise<boolean>;
+  reactivateUser(userId: string): Promise<boolean>;
+  scheduleArchive(userId: string, scheduledArchiveDate: string): Promise<boolean>;
 }

@@ -78,4 +78,54 @@ export class StudentController {
       res.status(400).json({ error: (error as Error).message });
     }
   };
+
+  getArchived = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const students = await this.studentUseCase.getArchivedStudents();
+      res.json(students);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  getArchivedByProfessor = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const professorId = req.params.professorId;
+      const students = await this.studentUseCase.getArchivedStudentsByProfessor(professorId);
+      res.json(students);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  archiveUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.params.userId;
+      const success = await this.studentUseCase.archiveUser(userId);
+      res.json({ success });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  reactivateUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.params.userId;
+      const success = await this.studentUseCase.reactivateUser(userId);
+      res.json({ success });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  scheduleArchive = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.params.userId;
+      const { scheduledArchiveDate } = req.body;
+      const success = await this.studentUseCase.scheduleArchive(userId, scheduledArchiveDate);
+      res.json({ success });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
 }

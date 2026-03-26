@@ -29,6 +29,7 @@ export class ProfessorRepository implements IProfessorRepository {
       .from('tblusers')
       .select('user_id, username, email, first_name, middle_initial, last_name, created_at')
       .eq('role_id', 2)
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -84,9 +85,54 @@ export class ProfessorRepository implements IProfessorRepository {
     const { count, error } = await this.supabase
       .from('tblusers')
       .select('*', { count: 'exact', head: true })
-      .eq('role_id', 2);
+      .eq('role_id', 2)
+      .eq('is_active', true);
 
     if (error) throw new Error(error.message);
     return count || 0;
+  }
+
+  async getArchivedProfessors() {
+    // Get archived professors
+    const { data: users, error: usersError } = await this.supabase
+      .from('tblusers')
+      .select(`
+        user_id,
+        username,
+        email,
+        first_name,
+        middle_initial,
+        last_name,
+        role_id,
+        scheduled_archive_date,
+        created_at
+      `)
+      .eq('role_id', 2) // 2 is professor role
+      .eq('is_active', false);
+
+    if (usersError) throw new Error(usersError.message);
+    if (!users || users.length === 0) return [];
+
+    // Get role name
+    const { data: roles, error: rolesError } = await this.supabase
+      .from('tblroles')
+      .select('role_id, role_name')
+      .eq('role_id', 2)
+      .single();
+
+    const roleName = (!rolesError && roles) ? roles.role_name : 'professor';
+    
+    return users.map(user => ({
+      userId: user.user_id,
+      username: user.username,
+      email: user.email,
+      firstName: user.first_name,
+      middleInitial: user.middle_initial,
+      lastName: user.last_name,
+      roleId: user.role_id,
+      roleName: roleName,
+      scheduledArchiveDate: user.scheduled_archive_date,
+      createdAt: user.created_at
+    }));
   }
 }

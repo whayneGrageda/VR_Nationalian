@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import StudentLayout from '../components/StudentLayout';
 import { useAuth } from '../contexts/AuthContext';
-import { Trophy, Zap, Users, Award, TrendingUp, Medal, Crown, Star } from 'lucide-react';
+import { Zap, Users, Award, TrendingUp, Medal, Crown, Star } from 'lucide-react';
 import './LeaderboardPage.css';
 
 interface LeaderboardEntry {
@@ -118,7 +118,6 @@ export default function LeaderboardPage() {
       <LayoutComponent>
         <div className="leaderboard-page">
           <div className="page-header">
-            <Trophy size={32} />
             <div>
               <h1 className="page-title">Leaderboards</h1>
               <p className="page-subtitle">Top Performers</p>
@@ -144,7 +143,6 @@ export default function LeaderboardPage() {
     <LayoutComponent>
       <div className="leaderboard-page">
         <div className="page-header">
-          <Trophy size={32} />
           <div>
             <h1 className="page-title">Leaderboards</h1>
             <p className="page-subtitle">Top Performers</p>

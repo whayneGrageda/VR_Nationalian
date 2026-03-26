@@ -182,7 +182,7 @@ export default function AdminDashboard() {
 
         {loading ? (
           <>
-            <SkeletonStats count={7} />
+            <SkeletonStats count={5} />
             
             <div className="content-grid">
               <SkeletonCard />
@@ -246,20 +246,6 @@ export default function AdminDashboard() {
                   <div className="stat-value">{analytics?.totalAchievements || 0}</div>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon stat-icon-blue"><TrendingUp size={32} /></div>
-                <div className="stat-content">
-                  <div className="stat-label">Completion Rate</div>
-                  <div className="stat-value">{analytics?.overallCompletionRate.toFixed(1) || 0}%</div>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon stat-icon-orange"><Clock size={32} /></div>
-                <div className="stat-content">
-                  <div className="stat-label">Avg Playtime</div>
-                  <div className="stat-value">{analytics ? formatPlaytime(Math.round(analytics.averagePlaytime)) : '0h 0m'}</div>
-                </div>
-              </div>
             </div>
 
             <div className="content-grid">
@@ -310,6 +296,13 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="insight-item">
+                      <div className="insight-icon"><Clock size={24} /></div>
+                      <div className="insight-content">
+                        <div className="insight-value">{analytics ? formatPlaytime(Math.round(analytics.averagePlaytime)) : '0h 0m'}</div>
+                        <div className="insight-label">Avg Playtime</div>
+                      </div>
+                    </div>
+                    <div className="insight-item">
                       <div className="insight-icon"><TrendingUp size={24} /></div>
                       <div className="insight-content">
                         <div className="insight-value">
@@ -318,13 +311,6 @@ export default function AdminDashboard() {
                         <div className="insight-label">
                           Most Active Section ({overview.insights.mostActiveSection?.studentCount || 0} students)
                         </div>
-                      </div>
-                    </div>
-                    <div className="insight-item">
-                      <div className="insight-icon"><BookOpen size={24} /></div>
-                      <div className="insight-content">
-                        <div className="insight-value">{overview.insights.chaptersCompletedThisWeek}</div>
-                        <div className="insight-label">Chapters This Week</div>
                       </div>
                     </div>
                   </div>
@@ -336,7 +322,17 @@ export default function AdminDashboard() {
 
             <div className="content-grid">
               <div className="content-card">
-                <h2 className="card-title">Chapter Completion Rates</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h2 className="card-title" style={{ margin: 0 }}>Chapter Completion Rates</h2>
+                  {analytics && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Overall:</span>
+                      <span style={{ color: '#10b981', fontSize: '1.25rem', fontWeight: '600' }}>
+                        {analytics.overallCompletionRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
                 {analytics && analytics.chapterCompletionRates.length > 0 ? (
                   <div className="table-container">
                     <table className="data-table">
@@ -442,7 +438,17 @@ export default function AdminDashboard() {
               </div>
             </div>
           ) : (
-            <p className="card-text">Loading system status...</p>
+            <div className="system-status-grid">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="status-item">
+                  <div className="skeleton" style={{ width: '12px', height: '12px', borderRadius: '50%' }} />
+                  <div className="status-content" style={{ flex: 1 }}>
+                    <div className="skeleton skeleton-text short" style={{ marginBottom: '0.5rem' }} />
+                    <div className="skeleton skeleton-text medium" />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -68,6 +68,7 @@ export class UserRepository implements IUserRepository {
       .select('user_id, username, email, first_name, middle_initial, last_name, created_at')
       .eq('role_id', 1)
       .eq('section_id', sectionId)
+      .eq('is_active', true)
       .order('last_name', { ascending: true });
 
     if (error) throw new Error(error.message);
@@ -117,7 +118,8 @@ export class UserRepository implements IUserRepository {
     const { count, error } = await this.supabase
       .from('tblusers')
       .select('*', { count: 'exact', head: true })
-      .eq('role_id', 1);
+      .eq('role_id', 1)
+      .eq('is_active', true);
 
     if (error) throw new Error(error.message);
     return count || 0;
@@ -143,7 +145,8 @@ export class UserRepository implements IUserRepository {
       .from('tblusers')
       .select('user_id')
       .eq('role_id', 1)
-      .eq('section_id', sectionId);
+      .eq('section_id', sectionId)
+      .eq('is_active', true);
 
     if (studentsError || !students) return 0;
 
@@ -209,6 +212,7 @@ export class UserRepository implements IUserRepository {
         tblsections!tblusers_section_id_fkey(section_name)
       `)
       .eq('role_id', 1)
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -263,6 +267,7 @@ export class UserRepository implements IUserRepository {
         tblsections!tblusers_section_id_fkey(section_name)
       `)
       .eq('role_id', 1)
+      .eq('is_active', true)
       .in('section_id', sectionIds)
       .order('last_name', { ascending: true });
 
@@ -280,5 +285,163 @@ export class UserRepository implements IUserRepository {
       sectionId: student.section_id,
       sectionName: student.tblsections?.section_name
     }));
+  }
+
+  async getArchivedUsers(roleId: number) {
+    // First get the users
+    const { data: users, error: usersError } = await this.supabase
+      .from('tblusers')
+      .select(`
+        user_id,
+        username,
+        email,
+        first_name,
+        middle_initial,
+        last_name,
+        role_id,
+        section_id,
+        scheduled_archive_date,
+        created_at
+      `)
+      .eq('role_id', roleId)
+      .eq('is_active', false);
+
+    if (usersError) throw new Error(usersError.message);
+    if (!users || users.length === 0) return [];
+
+    // Get role names
+    const { data: roles, error: rolesError } = await this.supabase
+      .from('tblroles')
+      .select('role_id, role_name');
+
+    if (rolesError) throw new Error(rolesError.message);
+
+    // Get section names for users with section_id
+    const sectionIds = users
+      .filter(u => u.section_id)
+      .map(u => u.section_id);
+
+    let sections: any[] = [];
+    if (sectionIds.length > 0) {
+      const { data: sectionsData, error: sectionsError } = await this.supabase
+        .from('tblsections')
+        .select('section_id, section_name')
+        .in('section_id', sectionIds);
+
+      if (!sectionsError && sectionsData) {
+        sections = sectionsData;
+      }
+    }
+
+    // Map the data
+    const roleMap = new Map(roles?.map(r => [r.role_id, r.role_name]) || []);
+    const sectionMap = new Map(sections.map(s => [s.section_id, s.section_name]));
+
+    return users.map(user => ({
+      userId: user.user_id,
+      username: user.username,
+      email: user.email,
+      firstName: user.first_name,
+      middleInitial: user.middle_initial,
+      lastName: user.last_name,
+      roleId: user.role_id,
+      roleName: roleMap.get(user.role_id) || 'unknown',
+      sectionId: user.section_id,
+      sectionName: user.section_id ? sectionMap.get(user.section_id) : undefined,
+      scheduledArchiveDate: user.scheduled_archive_date,
+      createdAt: user.created_at
+    }));
+  }
+
+  async getArchivedStudentsByProfessor(professorId: string) {
+    // Get all sections for this professor
+    const { data: sections, error: sectionsError } = await this.supabase
+      .from('tblsections')
+      .select('section_id')
+      .eq('professor_id', professorId);
+
+    if (sectionsError) throw new Error(sectionsError.message);
+    if (!sections || sections.length === 0) return [];
+
+    const sectionIds = sections.map(s => s.section_id);
+
+    // Get archived students in those sections
+    const { data: users, error: usersError } = await this.supabase
+      .from('tblusers')
+      .select(`
+        user_id,
+        username,
+        email,
+        first_name,
+        middle_initial,
+        last_name,
+        role_id,
+        section_id,
+        scheduled_archive_date,
+        created_at
+      `)
+      .eq('role_id', 1)
+      .eq('is_active', false)
+      .in('section_id', sectionIds);
+
+    if (usersError) throw new Error(usersError.message);
+    if (!users || users.length === 0) return [];
+
+    // Get section names
+    const { data: sectionsData, error: sectionsDataError } = await this.supabase
+      .from('tblsections')
+      .select('section_id, section_name')
+      .in('section_id', sectionIds);
+
+    const sectionMap = new Map(
+      (!sectionsDataError && sectionsData) 
+        ? sectionsData.map(s => [s.section_id, s.section_name])
+        : []
+    );
+
+    return users.map(user => ({
+      userId: user.user_id,
+      username: user.username,
+      email: user.email,
+      firstName: user.first_name,
+      middleInitial: user.middle_initial,
+      lastName: user.last_name,
+      roleId: user.role_id,
+      roleName: 'student',
+      sectionId: user.section_id,
+      sectionName: user.section_id ? sectionMap.get(user.section_id) : undefined,
+      scheduledArchiveDate: user.scheduled_archive_date,
+      createdAt: user.created_at
+    }));
+  }
+
+  async archiveUser(userId: string) {
+    const { error } = await this.supabase
+      .from('tblusers')
+      .update({ is_active: false })
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
+  async reactivateUser(userId: string) {
+    const { error } = await this.supabase
+      .from('tblusers')
+      .update({ is_active: true, scheduled_archive_date: null })
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
+  async scheduleArchive(userId: string, scheduledArchiveDate: string) {
+    const { error } = await this.supabase
+      .from('tblusers')
+      .update({ scheduled_archive_date: scheduledArchiveDate })
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return true;
   }
 }

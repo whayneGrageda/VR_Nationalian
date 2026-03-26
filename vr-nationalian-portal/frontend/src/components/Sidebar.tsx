@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut, TrendingUp, Trophy, FileText } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut, TrendingUp, Trophy, FileText, Archive } from 'lucide-react';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -18,19 +18,21 @@ export default function Sidebar() {
   const menuItems = isProfessor
     ? [
         { path: '/professor', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/professor/sections', label: 'My Sections', icon: BookOpen },
-        { path: '/professor/students', label: 'My Students', icon: Users },
         { path: '/professor/chapters', label: 'Chapters', icon: FileText },
         { path: '/professor/leaderboards', label: 'Leaderboards', icon: Trophy },
+        { path: '/professor/sections', label: 'My Sections', icon: BookOpen },
+        { path: '/professor/students', label: 'My Students', icon: Users },
+        { path: '/professor/archives', label: 'Archives', icon: Archive },
       ]
     : [
         { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
+        { path: '/admin/leaderboards', label: 'Leaderboards', icon: Trophy },
+        { path: '/admin/chapters', label: 'Chapters', icon: FileText },
         { path: '/admin/sections', label: 'All Sections', icon: BookOpen },
         { path: '/admin/students', label: 'All Students', icon: Users },
         { path: '/admin/professors', label: 'All Professors', icon: GraduationCap },
-        { path: '/admin/chapters', label: 'Chapters', icon: FileText },
-        { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
-        { path: '/admin/leaderboards', label: 'Leaderboards', icon: Trophy },
+        { path: '/admin/archives', label: 'Archives', icon: Archive },
       ];
 
   return (

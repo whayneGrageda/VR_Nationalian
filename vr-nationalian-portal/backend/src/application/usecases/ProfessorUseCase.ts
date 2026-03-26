@@ -19,4 +19,8 @@ export class ProfessorUseCase {
   async deleteProfessor(userId: string): Promise<boolean> {
     return this.professorRepository.deleteProfessor(userId);
   }
+
+  async getArchivedProfessors() {
+    return this.professorRepository.getArchivedProfessors();
+  }
 }

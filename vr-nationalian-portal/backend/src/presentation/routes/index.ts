@@ -58,6 +58,8 @@ export function createRoutes(
 
   router.post('/students', studentController.create);
   router.get('/students', studentController.getAll);
+  router.get('/students/archived', studentController.getArchived);
+  router.get('/students/archived/professor/:professorId', studentController.getArchivedByProfessor);
   router.get('/students/section/:sectionId', studentController.getBySection);
   router.get('/students/professor/:professorId', studentController.getByProfessor);
   router.put('/students/:id', studentController.update);
@@ -65,8 +67,13 @@ export function createRoutes(
 
   router.post('/professors', professorController.create);
   router.get('/professors', professorController.getAll);
+  router.get('/professors/archived', professorController.getArchived);
   router.put('/professors/:id', professorController.update);
   router.delete('/professors/:id', professorController.delete);
+
+  router.patch('/users/:userId/archive', studentController.archiveUser);
+  router.patch('/users/:userId/reactivate', studentController.reactivateUser);
+  router.patch('/users/:userId/schedule-archive', studentController.scheduleArchive);
 
   router.get('/quiz-scores', quizScoreController.getAllStudentsQuizScores);
   router.get('/quiz-scores/professor/:professorId', quizScoreController.getProfessorStudentsQuizScores);

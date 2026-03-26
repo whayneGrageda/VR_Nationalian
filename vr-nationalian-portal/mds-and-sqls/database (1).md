@@ -37,6 +37,8 @@ Core user accounts for all roles.
 | last_name | text | | Last name |
 | role_id | integer | FK → tblroles, default 1 | User role |
 | section_id | uuid | FK → tblsections | Section enrollment (students) |
+| is_active | boolean | NOT NULL, default true | Whether user account is active (false = archived) |
+| scheduled_archive_date | timestamptz | | Scheduled date/time for automatic archiving |
 | created_at | timestamptz | default now() | Account creation timestamp |
 
 ---
@@ -208,7 +210,9 @@ Fires before any UPDATE on `tbluserprofiles`. Sets `updated_at = NOW()` automati
 ### Authentication
 
 #### `fn_login(p_username, p_password, p_device_type)`
-Authenticates a user by username and bcrypt password comparison. Deletes any existing session for that user+device combination, creates a new 30-day session token, and returns a JSON object with `user_id`, `username`, `email`, `role_id`, `first_name`, `middle_initial`, `last_name`, `section_id`, `token`, and `expires_at`. Raises an exception on invalid credentials.
+Authenticates a user by username and bcrypt password comparison. First verifies credentials, then checks that the user account is active (`is_active = true`). Deletes any existing session for that user+device combination, creates a new 30-day session token, and returns a JSON object with `user_id`, `username`, `email`, `role_id`, `first_name`, `middle_initial`, `last_name`, `section_id`, `token`, and `expires_at`. Returns an error JSON with `success: false` and specific error messages:
+- "Invalid username or password" for incorrect credentials
+- "Account deactivated. Please contact administrator." for archived/inactive accounts
 
 #### `fn_register(p_username, p_password, p_email, p_device_type)`
 Registers a new student account (role_id = 1). Hashes the password with bcrypt, inserts the user into `tblusers`, creates a session token, and returns user info with the session token. Profile and chapter records are created automatically via triggers.

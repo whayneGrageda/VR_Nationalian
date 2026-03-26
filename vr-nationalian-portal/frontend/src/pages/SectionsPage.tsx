@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight } from 'lucide-react';
+import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -274,6 +274,24 @@ export default function SectionsPage() {
     }
   };
 
+  const handleArchiveStudent = async (studentId: string) => {
+    if (!confirm('Are you sure you want to archive this student? They will no longer be able to access the system.')) return;
+
+    try {
+      const response = await fetch(`/api/users/${studentId}/archive`, {
+        method: 'PATCH'
+      });
+
+      if (!response.ok) throw new Error('Failed to archive student');
+      
+      if (selectedSection) {
+        fetchStudents(selectedSection.sectionId);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   const openCreateModal = () => {
     setEditingSection(null);
     setFormData({ sectionName: '', professorId: '' });
@@ -389,15 +407,13 @@ export default function SectionsPage() {
                       <th>Username</th>
                       <th>Name</th>
                       <th>Email</th>
-                      <th style={{ width: '50px' }}></th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {students.map((student) => (
                       <tr 
                         key={student.userId}
-                        onClick={() => handleStudentClick(student)}
-                        style={{ cursor: 'pointer' }}
                       >
                         <td className="font-medium">{student.username}</td>
                         <td>
@@ -405,8 +421,25 @@ export default function SectionsPage() {
                         </td>
                         <td>{student.email}</td>
                         <td>
-                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <ChevronRight size={20} color="#3b82f6" />
+                          <div className="action-buttons">
+                            <button
+                              className="btn-icon"
+                              onClick={() => handleStudentClick(student)}
+                              title="View Details"
+                              style={{ color: '#3b82f6' }}
+                            >
+                              <ChevronRight size={16} />
+                            </button>
+                            <button
+                              className="btn-icon btn-archive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleArchiveStudent(student.userId);
+                              }}
+                              title="Archive"
+                            >
+                              <Archive size={16} />
+                            </button>
                           </div>
                         </td>
                       </tr>

@@ -27,4 +27,25 @@ export class StudentUseCase {
   async getStudentsByProfessor(professorId: string): Promise<User[]> {
     return this.userRepository.getStudentsByProfessor(professorId);
   }
+
+  async getArchivedStudents() {
+    return this.userRepository.getArchivedUsers(1); // 1 is student role
+  }
+
+  async getArchivedStudentsByProfessor(professorId: string) {
+    return this.userRepository.getArchivedStudentsByProfessor(professorId);
+  }
+
+  async archiveUser(userId: string) {
+    return this.userRepository.archiveUser(userId);
+  }
+
+  async reactivateUser(userId: string) {
+    return this.userRepository.reactivateUser(userId);
+  }
+
+  async scheduleArchive(userId: string, scheduledArchiveDate: string) {
+    return this.userRepository.scheduleArchive(userId, scheduledArchiveDate);
+  }
 }
+

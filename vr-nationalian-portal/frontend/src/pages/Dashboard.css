@@ -1,5 +1,6 @@
 .dashboard {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
 }
 
 .dashboard-header {
@@ -117,6 +118,16 @@
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

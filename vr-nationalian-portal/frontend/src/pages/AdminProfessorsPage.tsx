@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen, X } from 'lucide-react';
+import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen, X, Archive, Calendar } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -31,6 +31,10 @@ export default function AdminProfessorsPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
   const [selectedSectionToAssign, setSelectedSectionToAssign] = useState('');
+  const [selectedProfessors, setSelectedProfessors] = useState<Set<number>>(new Set());
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -40,6 +44,7 @@ export default function AdminProfessorsPage() {
     lastName: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -214,6 +219,109 @@ export default function AdminProfessorsPage() {
     }
   };
 
+  const handleArchive = async (userId: number) => {
+    if (!confirm('Are you sure you want to archive this professor? They will no longer be able to access the system.')) return;
+
+    try {
+      const response = await fetch(`/api/users/${userId}/archive`, {
+        method: 'PATCH'
+      });
+
+      if (!response.ok) throw new Error('Failed to archive professor');
+      fetchProfessors();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    if (selectedProfessors.size === 0) return;
+
+    if (!confirm(`Are you sure you want to archive ${selectedProfessors.size} professor(s)?`)) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedProfessors).map(userId =>
+          fetch(`/api/users/${userId}/archive`, { method: 'PATCH' })
+        )
+      );
+
+      setSuccess(`${selectedProfessors.size} professor(s) archived successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedProfessors(new Set());
+      fetchProfessors();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleScheduleArchive = async () => {
+    if (selectedProfessors.size === 0 || !scheduleDate || !scheduleTime) return;
+
+    const scheduledDateTime = `${scheduleDate}T${scheduleTime}`;
+
+    try {
+      await Promise.all(
+        Array.from(selectedProfessors).map(userId =>
+          fetch(`/api/users/${userId}/schedule-archive`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduledArchiveDate: scheduledDateTime })
+          })
+        )
+      );
+
+      setSuccess(`Archive scheduled for ${selectedProfessors.size} professor(s)`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedProfessors(new Set());
+      setShowScheduleModal(false);
+      setScheduleDate('');
+      setScheduleTime('');
+      fetchProfessors();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProfessors.size === 0) return;
+
+    if (!confirm(`Are you sure you want to permanently delete ${selectedProfessors.size} professor(s)? This action cannot be undone.`)) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedProfessors).map(userId =>
+          fetch(`/api/professors/${userId}`, { method: 'DELETE' })
+        )
+      );
+
+      setSuccess(`${selectedProfessors.size} professor(s) deleted successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedProfessors(new Set());
+      fetchProfessors();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const toggleProfessorSelection = (userId: number) => {
+    const newSelection = new Set(selectedProfessors);
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId);
+    } else {
+      newSelection.add(userId);
+    }
+    setSelectedProfessors(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProfessors.size === filteredProfessors.length) {
+      setSelectedProfessors(new Set());
+    } else {
+      setSelectedProfessors(new Set(filteredProfessors.map(p => p.userId)));
+    }
+  };
+
   const openCreateModal = () => {
     setEditingProfessor(null);
     resetForm();
@@ -332,19 +440,38 @@ export default function AdminProfessorsPage() {
         </div>
 
         {error && <div className="error-banner">{error}</div>}
+        {success && <div className="success-banner">{success}</div>}
 
         {!loading && professors.length > 0 && (
-          <div className="filter-bar">
-            <label className="filter-label">Search:</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Search professors..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ maxWidth: '300px' }}
-            />
-          </div>
+          <>
+            <div className="filter-bar">
+              <label className="filter-label">Search:</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Search professors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ maxWidth: '300px' }}
+              />
+            </div>
+            {selectedProfessors.size > 0 && (
+              <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+                <button className="btn btn-warning" onClick={handleBulkArchive}>
+                  <Archive size={16} />
+                  Archive ({selectedProfessors.size})
+                </button>
+                <button className="btn btn-secondary" onClick={() => setShowScheduleModal(true)}>
+                  <Calendar size={16} />
+                  Schedule Archive
+                </button>
+                <button className="btn btn-danger" onClick={handleBulkDelete}>
+                  <Trash2 size={16} />
+                  Delete ({selectedProfessors.size})
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {loading ? (
@@ -371,6 +498,13 @@ export default function AdminProfessorsPage() {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedProfessors.size === filteredProfessors.length && filteredProfessors.length > 0}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th>Name</th>
                   <th>Username</th>
                   <th>Created</th>
@@ -381,12 +515,31 @@ export default function AdminProfessorsPage() {
                 {filteredProfessors.map((professor) => (
                   <tr 
                     key={professor.userId}
-                    onClick={() => handleProfessorClick(professor)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <td className="font-medium">{getFullName(professor)}</td>
-                    <td><code>{professor.username}</code></td>
-                    <td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedProfessors.has(professor.userId)}
+                        onChange={() => toggleProfessorSelection(professor.userId)}
+                      />
+                    </td>
+                    <td 
+                      className="font-medium"
+                      onClick={() => handleProfessorClick(professor)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {getFullName(professor)}
+                    </td>
+                    <td
+                      onClick={() => handleProfessorClick(professor)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <code>{professor.username}</code>
+                    </td>
+                    <td
+                      onClick={() => handleProfessorClick(professor)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       {professor.createdAt 
                         ? new Date(professor.createdAt).toLocaleDateString()
                         : 'N/A'}
@@ -399,6 +552,13 @@ export default function AdminProfessorsPage() {
                           title="Edit"
                         >
                           <Edit2 size={16} />
+                        </button>
+                        <button 
+                          className="btn-icon btn-archive" 
+                          onClick={() => handleArchive(professor.userId)}
+                          title="Archive"
+                        >
+                          <Archive size={16} />
                         </button>
                         <button 
                           className="btn-icon btn-delete" 
@@ -549,6 +709,56 @@ export default function AdminProfessorsPage() {
                   disabled={!selectedSectionToAssign}
                 >
                   Assign
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showScheduleModal && (
+          <div className="modal-overlay" onClick={() => setShowScheduleModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Schedule Archive</h2>
+                <button className="modal-close" onClick={() => setShowScheduleModal(false)}>×</button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <p style={{ color: '#94a3b8', marginBottom: '1rem' }}>
+                  Schedule {selectedProfessors.size} professor(s) to be archived on a specific date and time.
+                </p>
+                <div className="form-group">
+                  <label className="form-label">Archive Date *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Archive Time *</label>
+                  <input
+                    type="time"
+                    className="form-input"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowScheduleModal(false)}>
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-primary"
+                  onClick={handleScheduleArchive}
+                  disabled={!scheduleDate || !scheduleTime}
+                >
+                  Schedule
                 </button>
               </div>
             </div>

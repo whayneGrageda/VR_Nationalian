@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award } from 'lucide-react';
+import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award, Archive, Calendar } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
 
@@ -84,10 +84,15 @@ export default function StudentsPage() {
     sectionId: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const isAdmin = user?.roleName === 'admin';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPrefix, setSelectedPrefix] = useState('');
   const [selectedNumber, setSelectedNumber] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
 
   useEffect(() => {
     if (isAdmin) {
@@ -393,6 +398,132 @@ export default function StudentsPage() {
       lastName: '',
       sectionId: ''
     });
+  };
+
+  const handleArchive = async (userId: string) => {
+    if (!confirm('Are you sure you want to archive this student?')) return;
+
+    try {
+      const response = await fetch(`/api/users/${userId}/archive`, {
+        method: 'PATCH'
+      });
+
+      if (!response.ok) throw new Error('Failed to archive student');
+      
+      setSuccess('Student archived successfully');
+      setTimeout(() => setSuccess(''), 3000);
+      
+      if (isAdmin) {
+        fetchAllStudents();
+      } else {
+        fetchProfessorStudents();
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    if (selectedStudents.size === 0) return;
+
+    if (!confirm(`Are you sure you want to archive ${selectedStudents.size} student(s)?`)) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedStudents).map(userId =>
+          fetch(`/api/users/${userId}/archive`, { method: 'PATCH' })
+        )
+      );
+
+      setSuccess(`${selectedStudents.size} student(s) archived successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedStudents(new Set());
+      
+      if (isAdmin) {
+        fetchAllStudents();
+      } else {
+        fetchProfessorStudents();
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleScheduleArchive = async () => {
+    if (selectedStudents.size === 0 || !scheduleDate || !scheduleTime) return;
+
+    const scheduledDateTime = `${scheduleDate}T${scheduleTime}`;
+
+    try {
+      await Promise.all(
+        Array.from(selectedStudents).map(userId =>
+          fetch(`/api/users/${userId}/schedule-archive`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduledArchiveDate: scheduledDateTime })
+          })
+        )
+      );
+
+      setSuccess(`Archive scheduled for ${selectedStudents.size} student(s)`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedStudents(new Set());
+      setShowScheduleModal(false);
+      setScheduleDate('');
+      setScheduleTime('');
+      
+      if (isAdmin) {
+        fetchAllStudents();
+      } else {
+        fetchProfessorStudents();
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStudents.size === 0) return;
+
+    if (!confirm(`Are you sure you want to permanently delete ${selectedStudents.size} student(s)? This action cannot be undone.`)) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedStudents).map(userId =>
+          fetch(`/api/students/${userId}`, { method: 'DELETE' })
+        )
+      );
+
+      setSuccess(`${selectedStudents.size} student(s) deleted successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedStudents(new Set());
+      
+      if (isAdmin) {
+        fetchAllStudents();
+      } else {
+        fetchProfessorStudents();
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const toggleStudentSelection = (userId: string) => {
+    const newSelection = new Set(selectedStudents);
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId);
+    } else {
+      newSelection.add(userId);
+    }
+    setSelectedStudents(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedStudents.size === filteredStudents.length) {
+      setSelectedStudents(new Set());
+    } else {
+      setSelectedStudents(new Set(filteredStudents.map(s => s.userId)));
+    }
   };
 
   const getFullName = (student: Student) => {
@@ -731,6 +862,7 @@ export default function StudentsPage() {
         </div>
 
         {error && <div className="error-banner">{error}</div>}
+        {success && <div className="success-banner">{success}</div>}
 
         {sections.length === 0 && !isAdmin ? (
           <div className="empty-state">
@@ -791,6 +923,23 @@ export default function StudentsPage() {
               )}
             </div>
 
+            {selectedStudents.size > 0 && (
+              <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+                <button className="btn btn-warning" onClick={handleBulkArchive}>
+                  <Archive size={16} />
+                  Archive ({selectedStudents.size})
+                </button>
+                <button className="btn btn-secondary" onClick={() => setShowScheduleModal(true)}>
+                  <Calendar size={16} />
+                  Schedule Archive
+                </button>
+                <button className="btn btn-danger" onClick={handleBulkDelete}>
+                  <Trash2 size={16} />
+                  Delete ({selectedStudents.size})
+                </button>
+              </div>
+            )}
+
             {loading ? (
               <div className="table-container">
                 <SkeletonTable rows={5} />
@@ -809,6 +958,13 @@ export default function StudentsPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
+                      <th style={{ width: '40px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedStudents.size === filteredStudents.length && filteredStudents.length > 0}
+                          onChange={toggleSelectAll}
+                        />
+                      </th>
                       <th>Name</th>
                       <th>Username</th>
                       {isAdmin && <th>Section</th>}
@@ -820,17 +976,41 @@ export default function StudentsPage() {
                     {filteredStudents.map((student) => (
                       <tr 
                         key={student.userId}
-                        onClick={() => handleStudentClick(student)}
-                        style={{ cursor: 'pointer' }}
                       >
-                        <td className="font-medium">{getFullName(student)}</td>
-                        <td><code>{student.username}</code></td>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedStudents.has(student.userId)}
+                            onChange={() => toggleStudentSelection(student.userId)}
+                          />
+                        </td>
+                        <td 
+                          className="font-medium"
+                          onClick={() => handleStudentClick(student)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {getFullName(student)}
+                        </td>
+                        <td
+                          onClick={() => handleStudentClick(student)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <code>{student.username}</code>
+                        </td>
                         {isAdmin && (
-                          <td>
+                          <td
+                            onClick={() => handleStudentClick(student)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             {student.sectionName || sections.find(s => s.sectionId === student.sectionId)?.sectionName || 'No Section'}
                           </td>
                         )}
-                        <td>{student.email || '—'}</td>
+                        <td
+                          onClick={() => handleStudentClick(student)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {student.email || '—'}
+                        </td>
                         <td>
                           <div className="action-buttons" onClick={(e) => e.stopPropagation()}>
                             <button 
@@ -839,6 +1019,13 @@ export default function StudentsPage() {
                               title="Edit"
                             >
                               <Edit2 size={16} />
+                            </button>
+                            <button 
+                              className="btn-icon btn-archive" 
+                              onClick={() => handleArchive(student.userId)}
+                              title="Archive"
+                            >
+                              <Archive size={16} />
                             </button>
                             <button 
                               className="btn-icon btn-delete" 
@@ -965,6 +1152,56 @@ export default function StudentsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {showScheduleModal && (
+          <div className="modal-overlay" onClick={() => setShowScheduleModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Schedule Archive</h2>
+                <button className="modal-close" onClick={() => setShowScheduleModal(false)}>×</button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <p style={{ color: '#94a3b8', marginBottom: '1rem' }}>
+                  Schedule {selectedStudents.size} student(s) to be archived on a specific date and time.
+                </p>
+                <div className="form-group">
+                  <label className="form-label">Archive Date *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Archive Time *</label>
+                  <input
+                    type="time"
+                    className="form-input"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowScheduleModal(false)}>
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-primary" 
+                  onClick={handleScheduleArchive}
+                  disabled={!scheduleDate || !scheduleTime}
+                >
+                  Schedule Archive
+                </button>
+              </div>
             </div>
           </div>
         )}

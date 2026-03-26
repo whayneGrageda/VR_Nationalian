@@ -56,4 +56,13 @@ export class ProfessorController {
       res.status(400).json({ error: (error as Error).message });
     }
   };
+
+  getArchived = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const professors = await this.professorUseCase.getArchivedProfessors();
+      res.json(professors);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
 }

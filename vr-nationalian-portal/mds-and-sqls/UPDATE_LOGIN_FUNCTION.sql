@@ -1,5 +1,6 @@
 -- ================================================================
 -- UPDATE LOGIN FUNCTION TO USE BCRYPT PASSWORD VERIFICATION
+-- AND CHECK IS_ACTIVE STATUS
 -- ================================================================
 
 CREATE OR REPLACE FUNCTION fn_login(
@@ -15,7 +16,7 @@ DECLARE
     v_token      TEXT;
     v_expires_at TIMESTAMPTZ := NOW() + INTERVAL '7 days';
 BEGIN
-    -- Verify credentials using crypt for bcrypt password verification
+    -- First check if user exists with correct password
     SELECT u.* INTO v_user
     FROM   tblusers u
     WHERE  u.username = p_username 
@@ -26,6 +27,14 @@ BEGIN
         RETURN json_build_object(
             'success', false,
             'error', 'Invalid username or password'
+        );
+    END IF;
+
+    -- Check if account is active
+    IF v_user.is_active = false THEN
+        RETURN json_build_object(
+            'success', false,
+            'error', 'Account deactivated. Please contact administrator.'
         );
     END IF;
 
