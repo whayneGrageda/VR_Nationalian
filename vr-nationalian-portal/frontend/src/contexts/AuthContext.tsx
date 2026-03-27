@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getUserFriendlyError } from '../utils/errorHandler';
 
 interface User {
   userId: string;
@@ -64,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ sessionToken })
         });
       } catch (error) {
-        console.error('Failed to deactivate session:', error);
+        console.error('Logout error:', getUserFriendlyError(error));
         // Continue with logout even if API call fails
       }
     }

@@ -6,5 +6,7 @@ export interface ISectionRepository {
   getAllSections(): Promise<Section[]>;
   updateSection(data: UpdateSectionDTO): Promise<boolean>;
   deleteSection(sectionId: string): Promise<boolean>;
+  deactivateSection(sectionId: string): Promise<boolean>;
+  activateSection(sectionId: string): Promise<boolean>;
   getCount(): Promise<number>;
 }

@@ -23,4 +23,12 @@ export class SectionUseCase {
   async getAllSections(): Promise<Section[]> {
     return this.sectionRepository.getAllSections();
   }
+
+  async deactivateSection(sectionId: string): Promise<boolean> {
+    return this.sectionRepository.deactivateSection(sectionId);
+  }
+
+  async activateSection(sectionId: string): Promise<boolean> {
+    return this.sectionRepository.activateSection(sectionId);
+  }
 }

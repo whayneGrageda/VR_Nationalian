@@ -300,10 +300,12 @@ export default function ArchivesPage() {
               <RefreshCw size={16} />
               Reactivate ({selectedUsers.size})
             </button>
-            <button className="btn btn-danger" onClick={handleBulkDelete}>
-              <Trash2 size={16} />
-              Delete ({selectedUsers.size})
-            </button>
+            {isAdmin && (
+              <button className="btn btn-danger" onClick={handleBulkDelete}>
+                <Trash2 size={16} />
+                Delete ({selectedUsers.size})
+              </button>
+            )}
           </div>
         )}
 
@@ -367,13 +369,15 @@ export default function ArchivesPage() {
                           >
                             <RefreshCw size={16} />
                           </button>
-                          <button
-                            className="btn-icon btn-danger"
-                            onClick={() => handleDelete(user.userId)}
-                            title="Delete Permanently"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {isAdmin && (
+                            <button
+                              className="btn-icon btn-danger"
+                              onClick={() => handleDelete(user.userId)}
+                              title="Delete Permanently"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

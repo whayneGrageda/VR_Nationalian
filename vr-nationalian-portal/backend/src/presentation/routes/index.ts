@@ -54,6 +54,8 @@ export function createRoutes(
   router.get('/sections', sectionController.getAll);
   router.get('/sections/professor/:professorId', sectionController.getByProfessor);
   router.put('/sections/:id', sectionController.update);
+  router.patch('/sections/:id/deactivate', sectionController.deactivate);
+  router.patch('/sections/:id/activate', sectionController.activate);
   router.delete('/sections/:id', sectionController.delete);
 
   router.post('/students', studentController.create);

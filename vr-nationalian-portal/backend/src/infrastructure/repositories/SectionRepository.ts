@@ -20,21 +20,37 @@ export class SectionRepository implements ISectionRepository {
   }
 
   async getSectionsByProfessor(professorId: string): Promise<Section[]> {
-    const { data, error } = await this.supabase
+    // Get sections with student count using RPC or manual count
+    const { data: sections, error } = await this.supabase
       .from('tblsections')
-      .select('section_id, section_name, professor_id, created_at')
+      .select('section_id, section_name, professor_id, is_active, created_at')
       .eq('professor_id', professorId)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
 
-    return data.map((section: any) => ({
-      sectionId: section.section_id,
-      sectionName: section.section_name,
-      professorId: section.professor_id,
-      createdAt: new Date(section.created_at)
-    }));
+    // Get student counts for each section
+    const sectionsWithCounts = await Promise.all(
+      sections.map(async (section: any) => {
+        const { count, error: countError } = await this.supabase
+          .from('tblusers')
+          .select('*', { count: 'exact', head: true })
+          .eq('section_id', section.section_id)
+          .eq('role_id', 1); // Only count students
+
+        return {
+          sectionId: section.section_id,
+          sectionName: section.section_name,
+          professorId: section.professor_id,
+          isActive: section.is_active,
+          studentCount: count || 0,
+          createdAt: new Date(section.created_at)
+        };
+      })
+    );
+
+    return sectionsWithCounts;
   }
 
   async updateSection(data: UpdateSectionDTO): Promise<boolean> {
@@ -86,19 +102,55 @@ export class SectionRepository implements ISectionRepository {
   }
 
   async getAllSections(): Promise<Section[]> {
-    const { data, error } = await this.supabase
+    // Get all sections
+    const { data: sections, error } = await this.supabase
       .from('tblsections')
-      .select('section_id, section_name, professor_id, created_at')
+      .select('section_id, section_name, professor_id, is_active, created_at')
       .eq('is_hidden', false)
       .order('section_name', { ascending: true });
 
     if (error) throw new Error(error.message);
 
-    return data.map((section: any) => ({
-      sectionId: section.section_id,
-      sectionName: section.section_name,
-      professorId: section.professor_id,
-      createdAt: new Date(section.created_at)
-    }));
+    // Get student counts for each section
+    const sectionsWithCounts = await Promise.all(
+      sections.map(async (section: any) => {
+        const { count, error: countError } = await this.supabase
+          .from('tblusers')
+          .select('*', { count: 'exact', head: true })
+          .eq('section_id', section.section_id)
+          .eq('role_id', 1); // Only count students
+
+        return {
+          sectionId: section.section_id,
+          sectionName: section.section_name,
+          professorId: section.professor_id,
+          isActive: section.is_active,
+          studentCount: count || 0,
+          createdAt: new Date(section.created_at)
+        };
+      })
+    );
+
+    return sectionsWithCounts;
+  }
+
+  async deactivateSection(sectionId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('tblsections')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('section_id', sectionId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
+  async activateSection(sectionId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('tblsections')
+      .update({ is_active: true, updated_at: new Date().toISOString() })
+      .eq('section_id', sectionId);
+
+    if (error) throw new Error(error.message);
+    return true;
   }
 }

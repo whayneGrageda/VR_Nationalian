@@ -52,8 +52,11 @@ Class sections created and managed by professors.
 | section_name | text | NOT NULL | Display name of the section |
 | professor_id | uuid | FK → tblusers(user_id) | Owning professor |
 | is_hidden | boolean | default false | Visibility flag for students |
+| is_active | boolean | NOT NULL, default true | Whether section is active (false = deactivated) |
 | created_at | timestamptz | default now() | Creation timestamp |
 | updated_at | timestamptz | default now() | Last update timestamp |
+
+**Note on `is_active`:** When a section is deactivated (is_active = false), students already enrolled remain enrolled and can still access their content. The section is hidden from new student enrollment views but professors can still see and manage it. The section can be reactivated at any time.
 
 ---
 

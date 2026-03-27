@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive } from 'lucide-react';
+import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive, Power, PowerOff } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
+import { getUserFriendlyError, handleApiResponse } from '../utils/errorHandler';
 import './ManagementPage.css';
 
 interface Section {
   sectionId: number;
   sectionName: string;
   professorId?: number;
+  isActive?: boolean;
+  studentCount?: number;
   createdAt: string;
 }
 
@@ -51,10 +54,12 @@ export default function SectionsPage() {
     lastName: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const isAdmin = user?.roleName === 'admin';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPrefix, setSelectedPrefix] = useState('');
   const [selectedNumber, setSelectedNumber] = useState('');
+  const [selectedSections, setSelectedSections] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchSections();
@@ -66,12 +71,10 @@ export default function SectionsPage() {
   const fetchProfessors = async () => {
     try {
       const response = await fetch('/api/professors');
-      if (response.ok) {
-        const data = await response.json();
-        setProfessors(data);
-      }
+      const data = await handleApiResponse(response);
+      setProfessors(data);
     } catch (err) {
-      console.error('Failed to fetch professors:', err);
+      console.error('Failed to fetch professors:', getUserFriendlyError(err));
     }
   };
 
@@ -86,17 +89,12 @@ export default function SectionsPage() {
         : `/api/sections/professor/${user.userId}`;
       const response = await fetch(endpoint);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to load sections');
-      }
-      
-      const data = await response.json();
+      const data = await handleApiResponse(response);
       setSections(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Fetch sections error:', err);
-      setError((err as Error).message);
-      setSections([]); // Set empty array on error
+      setError(getUserFriendlyError(err));
+      setSections([]);
     } finally {
       setLoading(false);
     }
@@ -107,13 +105,11 @@ export default function SectionsPage() {
       setLoadingStudents(true);
       const response = await fetch(`/api/students/section/${sectionId}`);
       
-      if (!response.ok) throw new Error('Failed to load students');
-      
-      const data = await response.json();
+      const data = await handleApiResponse(response);
       setStudents(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Fetch students error:', err);
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
       setStudents([]);
     } finally {
       setLoadingStudents(false);
@@ -123,12 +119,10 @@ export default function SectionsPage() {
   const fetchAllStudents = async () => {
     try {
       const response = await fetch('/api/students');
-      if (response.ok) {
-        const data = await response.json();
-        setAllStudents(Array.isArray(data) ? data : []);
-      }
+      const data = await handleApiResponse(response);
+      setAllStudents(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch all students:', err);
+      console.error('Failed to fetch all students:', getUserFriendlyError(err));
     }
   };
 
@@ -161,7 +155,7 @@ export default function SectionsPage() {
           body: JSON.stringify({ sectionName: formData.sectionName })
         });
 
-        if (!response.ok) throw new Error('Failed to update section');
+        await handleApiResponse(response);
       } else {
         const response = await fetch('/api/sections', {
           method: 'POST',
@@ -172,7 +166,7 @@ export default function SectionsPage() {
           })
         });
 
-        if (!response.ok) throw new Error('Failed to create section');
+        await handleApiResponse(response);
       }
 
       setShowModal(false);
@@ -180,7 +174,7 @@ export default function SectionsPage() {
       setEditingSection(null);
       fetchSections();
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -201,10 +195,7 @@ export default function SectionsPage() {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create student');
-      }
+      await handleApiResponse(response);
 
       setShowStudentModal(false);
       setStudentMode('create');
@@ -219,7 +210,7 @@ export default function SectionsPage() {
       });
       fetchStudents(selectedSection.sectionId);
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -236,17 +227,14 @@ export default function SectionsPage() {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to assign student');
-      }
+      await handleApiResponse(response);
 
       setShowStudentModal(false);
       setStudentMode('create');
       setStudentSearchQuery('');
       fetchStudents(selectedSection.sectionId);
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -267,10 +255,102 @@ export default function SectionsPage() {
         method: 'DELETE'
       });
 
-      if (!response.ok) throw new Error('Failed to delete section');
+      await handleApiResponse(response);
       fetchSections();
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
+    }
+  };
+
+  const handleDeactivate = async (sectionId: number) => {
+    if (!confirm('Are you sure you want to deactivate this section? Students will remain enrolled but the section will be hidden.')) return;
+
+    try {
+      const response = await fetch(`/api/sections/${sectionId}/deactivate`, {
+        method: 'PATCH'
+      });
+
+      await handleApiResponse(response);
+      setSuccess('Section deactivated successfully');
+      setTimeout(() => setSuccess(''), 3000);
+      fetchSections();
+    } catch (err) {
+      setError(getUserFriendlyError(err));
+    }
+  };
+
+  const handleActivate = async (sectionId: number) => {
+    try {
+      const response = await fetch(`/api/sections/${sectionId}/activate`, {
+        method: 'PATCH'
+      });
+
+      await handleApiResponse(response);
+      setSuccess('Section activated successfully');
+      setTimeout(() => setSuccess(''), 3000);
+      fetchSections();
+    } catch (err) {
+      setError(getUserFriendlyError(err));
+    }
+  };
+
+  const handleBulkDeactivate = async () => {
+    if (selectedSections.size === 0) return;
+
+    if (!confirm(`Are you sure you want to deactivate ${selectedSections.size} section(s)?`)) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedSections).map(sectionId =>
+          fetch(`/api/sections/${sectionId}/deactivate`, { method: 'PATCH' })
+        )
+      );
+
+      setSuccess(`${selectedSections.size} section(s) deactivated successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedSections(new Set());
+      fetchSections();
+    } catch (err) {
+      setError(getUserFriendlyError(err));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSections.size === 0) return;
+
+    if (!confirm(`Are you sure you want to permanently delete ${selectedSections.size} section(s)? All students will be unassigned. This action cannot be undone.`)) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedSections).map(sectionId =>
+          fetch(`/api/sections/${sectionId}`, { method: 'DELETE' })
+        )
+      );
+
+      setSuccess(`${selectedSections.size} section(s) deleted successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      setSelectedSections(new Set());
+      fetchSections();
+    } catch (err) {
+      setError(getUserFriendlyError(err));
+    }
+  };
+
+  const toggleSectionSelection = (sectionId: number) => {
+    const newSelection = new Set(selectedSections);
+    if (newSelection.has(sectionId)) {
+      newSelection.delete(sectionId);
+    } else {
+      newSelection.add(sectionId);
+    }
+    setSelectedSections(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedSections.size === filteredSections.length) {
+      setSelectedSections(new Set());
+    } else {
+      setSelectedSections(new Set(filteredSections.map(s => s.sectionId)));
     }
   };
 
@@ -282,13 +362,13 @@ export default function SectionsPage() {
         method: 'PATCH'
       });
 
-      if (!response.ok) throw new Error('Failed to archive student');
+      await handleApiResponse(response);
       
       if (selectedSection) {
         fetchStudents(selectedSection.sectionId);
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -414,6 +494,8 @@ export default function SectionsPage() {
                     {students.map((student) => (
                       <tr 
                         key={student.userId}
+                        onClick={() => handleStudentClick(student)}
+                        style={{ cursor: 'pointer' }}
                       >
                         <td className="font-medium">{student.username}</td>
                         <td>
@@ -421,7 +503,14 @@ export default function SectionsPage() {
                         </td>
                         <td>{student.email}</td>
                         <td>
-                          <div className="action-buttons">
+                          <div className="action-buttons" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              className="btn-icon btn-archive"
+                              onClick={() => handleArchiveStudent(student.userId)}
+                              title="Archive"
+                            >
+                              <Archive size={16} />
+                            </button>
                             <button
                               className="btn-icon"
                               onClick={() => handleStudentClick(student)}
@@ -429,16 +518,6 @@ export default function SectionsPage() {
                               style={{ color: '#3b82f6' }}
                             >
                               <ChevronRight size={16} />
-                            </button>
-                            <button
-                              className="btn-icon btn-archive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleArchiveStudent(student.userId);
-                              }}
-                              title="Archive"
-                            >
-                              <Archive size={16} />
                             </button>
                           </div>
                         </td>
@@ -463,6 +542,7 @@ export default function SectionsPage() {
             </div>
 
             {error && <div className="error-banner">{error}</div>}
+            {success && <div className="success-banner">{success}</div>}
 
             {!loading && sections.length > 0 && (
               <div className="filter-bar">
@@ -517,6 +597,19 @@ export default function SectionsPage() {
               </div>
             )}
 
+            {selectedSections.size > 0 && (
+              <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+                <button className="btn btn-warning" onClick={handleBulkDeactivate}>
+                  <PowerOff size={16} />
+                  Deactivate ({selectedSections.size})
+                </button>
+                <button className="btn btn-danger" onClick={handleBulkDelete}>
+                  <Trash2 size={16} />
+                  Delete ({selectedSections.size})
+                </button>
+              </div>
+            )}
+
             {loading ? (
               <div className="table-container">
                 <SkeletonTable rows={5} />
@@ -541,7 +634,18 @@ export default function SectionsPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
+                      {isAdmin && (
+                        <th style={{ width: '40px' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedSections.size === filteredSections.length && filteredSections.length > 0}
+                            onChange={toggleSelectAll}
+                          />
+                        </th>
+                      )}
                       <th>Section Name</th>
+                      <th>Status</th>
+                      <th>Students</th>
                       <th>Created</th>
                       <th>Actions</th>
                     </tr>
@@ -550,27 +654,129 @@ export default function SectionsPage() {
                     {filteredSections.map((section) => (
                       <tr 
                         key={section.sectionId}
-                        onClick={() => handleSectionClick(section)}
-                        style={{ cursor: 'pointer' }}
                       >
-                        <td className="font-medium">{section.sectionName}</td>
-                        <td>{new Date(section.createdAt).toLocaleDateString()}</td>
+                        {isAdmin && (
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={selectedSections.has(section.sectionId)}
+                              onChange={() => toggleSectionSelection(section.sectionId)}
+                            />
+                          </td>
+                        )}
+                        <td 
+                          className="font-medium"
+                          onClick={() => handleSectionClick(section)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {section.sectionName}
+                        </td>
+                        <td
+                          onClick={() => handleSectionClick(section)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {section.isActive !== false ? (
+                            <span style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '0.5rem',
+                              padding: '0.25rem 0.75rem',
+                              background: '#064e3b',
+                              border: '1px solid #059669',
+                              borderRadius: '4px',
+                              color: '#6ee7b7',
+                              fontSize: '0.75rem',
+                              fontWeight: 600
+                            }}>
+                              <Power size={14} />
+                              Active
+                            </span>
+                          ) : (
+                            <span style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '0.5rem',
+                              padding: '0.25rem 0.75rem',
+                              background: '#1e293b',
+                              border: '1px solid #334155',
+                              borderRadius: '4px',
+                              color: '#64748b',
+                              fontSize: '0.75rem',
+                              fontWeight: 600
+                            }}>
+                              <PowerOff size={14} />
+                              Inactive
+                            </span>
+                          )}
+                        </td>
+                        <td
+                          onClick={() => handleSectionClick(section)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <span style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '0.5rem',
+                            color: '#94a3b8'
+                          }}>
+                            <Users size={14} />
+                            {section.studentCount ?? 0}
+                          </span>
+                        </td>
+                        <td
+                          onClick={() => handleSectionClick(section)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {new Date(section.createdAt).toLocaleDateString()}
+                        </td>
                         <td>
                           <div className="action-buttons" onClick={(e) => e.stopPropagation()}>
-                            <button 
-                              className="btn-icon btn-edit" 
-                              onClick={() => handleEdit(section)}
-                              title="Edit"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button 
-                              className="btn-icon btn-delete" 
-                              onClick={() => handleDelete(section.sectionId)}
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {isAdmin && (
+                              <>
+                                <button 
+                                  className="btn-icon btn-edit" 
+                                  onClick={() => handleEdit(section)}
+                                  title="Edit"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                {section.isActive !== false ? (
+                                  <button 
+                                    className="btn-icon btn-archive" 
+                                    onClick={() => handleDeactivate(section.sectionId)}
+                                    title="Deactivate"
+                                  >
+                                    <PowerOff size={16} />
+                                  </button>
+                                ) : (
+                                  <button 
+                                    className="btn-icon" 
+                                    onClick={() => handleActivate(section.sectionId)}
+                                    title="Activate"
+                                    style={{ color: '#10b981' }}
+                                  >
+                                    <Power size={16} />
+                                  </button>
+                                )}
+                                <button 
+                                  className="btn-icon btn-delete" 
+                                  onClick={() => handleDelete(section.sectionId)}
+                                  title="Delete"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </>
+                            )}
+                            {!isAdmin && (
+                              <button
+                                className="btn-icon"
+                                onClick={() => handleSectionClick(section)}
+                                title="View Students"
+                                style={{ color: '#3b82f6' }}
+                              >
+                                <ChevronRight size={16} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

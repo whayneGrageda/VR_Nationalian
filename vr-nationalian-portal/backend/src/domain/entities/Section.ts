@@ -2,6 +2,8 @@ export interface Section {
   sectionId: string; // Changed to string (UUID)
   sectionName: string;
   professorId?: string; // Changed to string (UUID)
+  isActive?: boolean;
+  studentCount?: number;
   createdAt: Date;
 }
 

@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getUserFriendlyError, handleApiResponse } from '../utils/errorHandler';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -23,11 +24,7 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
+      const data = await handleApiResponse(response);
 
       console.log('Login response:', data); // Debug log
       login(data);
@@ -41,7 +38,7 @@ export default function LoginPage() {
         navigate('/admin');
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     } finally {
       setLoading(false);
     }

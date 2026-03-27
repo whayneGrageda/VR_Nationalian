@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award, Archive, Calendar } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
+import { getUserFriendlyError, handleApiResponse } from '../utils/errorHandler';
 import './ManagementPage.css';
 
 interface Student {
@@ -117,12 +118,10 @@ export default function StudentsPage() {
   const fetchAllSections = async () => {
     try {
       const response = await fetch('/api/sections');
-      if (response.ok) {
-        const allSections = await response.json();
-        setSections(allSections);
-      }
+      const allSections = await handleApiResponse(response);
+      setSections(allSections);
     } catch (err) {
-      console.error('Failed to load all sections');
+      console.error(getUserFriendlyError(err));
     }
   };
 
@@ -130,15 +129,11 @@ export default function StudentsPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/students');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to load students');
-      }
-      const data = await response.json();
+      const data = await handleApiResponse(response);
       setStudents(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError((err as Error).message);
-      setStudents([]); // Set empty array on error
+      setError(getUserFriendlyError(err));
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -149,10 +144,10 @@ export default function StudentsPage() {
     
     try {
       const response = await fetch(`/api/sections/professor/${user.userId}`);
-      const data = await response.json();
+      const data = await handleApiResponse(response);
       setSections(data);
     } catch (err) {
-      setError('Failed to load sections');
+      setError(getUserFriendlyError(err));
     } finally {
       setLoading(false);
     }
@@ -164,14 +159,10 @@ export default function StudentsPage() {
     try {
       setLoading(true);
       const response = await fetch(`/api/students/professor/${user.userId}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to load students');
-      }
-      const data = await response.json();
+      const data = await handleApiResponse(response);
       setStudents(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
       setStudents([]);
     } finally {
       setLoading(false);
@@ -188,9 +179,7 @@ export default function StudentsPage() {
         fetch(`/api/quiz-scores/${userId}`)
       ]);
       
-      if (!chaptersRes.ok) throw new Error('Failed to load assessments');
-      
-      const chaptersData = await chaptersRes.json();
+      const chaptersData = await handleApiResponse(chaptersRes);
       const quizScores = quizScoresRes.ok ? await quizScoresRes.json() : [];
       
       // Merge quiz scores with chapter completion data
@@ -221,7 +210,7 @@ export default function StudentsPage() {
         });
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
       setChapters([]);
       setCompletedChapters([]);
       setAchievements([]);
@@ -230,7 +219,6 @@ export default function StudentsPage() {
       setLoadingAssessments(false);
     }
   };
-
   const handleStudentClick = (student: Student) => {
     setSelectedStudent(student);
     fetchStudentAssessments(student.userId);
@@ -297,7 +285,7 @@ export default function StudentsPage() {
           })
         });
 
-        if (!response.ok) throw new Error('Failed to update student');
+        await handleApiResponse(response);
       } else {
         const response = await fetch('/api/students', {
           method: 'POST',
@@ -313,7 +301,7 @@ export default function StudentsPage() {
           })
         });
 
-        if (!response.ok) throw new Error('Failed to create student');
+        await handleApiResponse(response);
       }
 
       setShowModal(false);
@@ -324,7 +312,7 @@ export default function StudentsPage() {
         fetchProfessorStudents();
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -354,14 +342,14 @@ export default function StudentsPage() {
         method: 'DELETE'
       });
 
-      if (!response.ok) throw new Error('Failed to delete student');
+      await handleApiResponse(response);
       if (isAdmin) {
         fetchAllStudents();
       } else {
         fetchProfessorStudents();
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -379,12 +367,10 @@ export default function StudentsPage() {
     try {
       // Fetch all sections for the dropdown in create/edit modal
       const response = await fetch('/api/sections');
-      if (response.ok) {
-        const allSections = await response.json();
-        setSections(allSections);
-      }
+      const allSections = await handleApiResponse(response);
+      setSections(allSections);
     } catch (err) {
-      console.error('Failed to load sections for modal');
+      console.error(getUserFriendlyError(err));
     }
   };
 
@@ -408,7 +394,7 @@ export default function StudentsPage() {
         method: 'PATCH'
       });
 
-      if (!response.ok) throw new Error('Failed to archive student');
+      await handleApiResponse(response);
       
       setSuccess('Student archived successfully');
       setTimeout(() => setSuccess(''), 3000);
@@ -419,7 +405,7 @@ export default function StudentsPage() {
         fetchProfessorStudents();
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -445,7 +431,7 @@ export default function StudentsPage() {
         fetchProfessorStudents();
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -478,7 +464,7 @@ export default function StudentsPage() {
         fetchProfessorStudents();
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -504,7 +490,7 @@ export default function StudentsPage() {
         fetchProfessorStudents();
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(getUserFriendlyError(err));
     }
   };
 
@@ -933,10 +919,12 @@ export default function StudentsPage() {
                   <Calendar size={16} />
                   Schedule Archive
                 </button>
-                <button className="btn btn-danger" onClick={handleBulkDelete}>
-                  <Trash2 size={16} />
-                  Delete ({selectedStudents.size})
-                </button>
+                {isAdmin && (
+                  <button className="btn btn-danger" onClick={handleBulkDelete}>
+                    <Trash2 size={16} />
+                    Delete ({selectedStudents.size})
+                  </button>
+                )}
               </div>
             )}
 
@@ -1027,13 +1015,15 @@ export default function StudentsPage() {
                             >
                               <Archive size={16} />
                             </button>
-                            <button 
-                              className="btn-icon btn-delete" 
-                              onClick={() => handleDelete(student.userId)}
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {isAdmin && (
+                              <button 
+                                className="btn-icon btn-delete" 
+                                onClick={() => handleDelete(student.userId)}
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
