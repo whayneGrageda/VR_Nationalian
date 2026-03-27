@@ -50,14 +50,20 @@ Clean Architecture with clear separation of concerns:
 - Achievement tracking per student
 - Section statistics dashboard
 - Leaderboard access
+- Archive management (view and reactivate archived students)
+- Bulk archive operations with scheduling
 
 ### Admin Portal
 - System-wide dashboard with real-time health monitoring
 - Quick insights (2x2 grid: avg students/section, logins today, most active section, chapters this week)
 - Recent activity feed (5 most recent, green background, violet highlight for Master of the Realm)
 - Professor management (CRUD operations)
+- Section deactivation/activation (admin-only)
+- Student deletion (permanent removal, admin-only)
+- Archive management (view, reactivate, and delete archived users)
 - Analytics page with time-based trends
 - Leaderboard system access
+- Bulk operations (archive, delete, deactivate)
 
 ### Analytics & Insights
 - Weekly completion trends (line chart)
@@ -83,5 +89,33 @@ Clean Architecture with clear separation of concerns:
 - Skeleton loading states
 - Empty states with placeholders
 - Real-time data updates
+- User-friendly error messages (no technical jargon)
 - Error handling and validation
 - Lucide React icons throughout
+- Role-based permission controls
+- Clickable table rows for quick navigation
+- Status badges (Active/Inactive, Archived)
+- Student count display in sections
+- Bulk selection with checkboxes
+
+## Recent Updates
+
+### March 2026 - Permission Refinements & Section Management
+- **Section Deactivation**: Admins can now deactivate sections without deleting them
+  - Deactivated sections remain accessible to professors and enrolled students
+  - Hidden from new student enrollment
+  - Can be reactivated at any time
+- **User-Friendly Error Handling**: Replaced technical errors with clear, actionable messages
+  - Network connectivity issues show helpful guidance
+  - Server errors provide user-friendly explanations
+  - Consistent error handling across all pages
+- **Permission Updates**:
+  - Professors can only edit and archive students (no deletion)
+  - Professors cannot edit, delete, or deactivate sections
+  - Professors cannot permanently delete archived users
+  - All destructive actions (delete, deactivate) are admin-only
+- **UX Improvements**:
+  - Added student count column in sections view
+  - Made entire student rows clickable for quick access
+  - Added bulk operations with checkbox selection
+  - Improved visual indicators with status badges
