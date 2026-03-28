@@ -12,53 +12,37 @@ The `tblsections` table now includes an `is_active` column:
 
 ## Behavior When a Section is Deactivated
 
-### For Admins
-- **Can deactivate/activate** sections (professors cannot)
-- **Full visibility** of both active and inactive sections
-- **Can manage** both active and inactive sections
-- **Can bulk deactivate** multiple sections at once
-- **Can bulk delete** sections (permanent removal)
-
 ### For Professors
-- **Cannot deactivate** their own sections (admin-only action)
-- **Can still view** inactive sections in their list (with visual indicator)
-- **Can still manage** students in inactive sections
+- **Can still view** the section in their sections list (with a visual indicator)
+- **Can still manage** students in the section
+- **Can reactivate** the section at any time
 - **Can still access** all section data and analytics
-- **Can edit and delete** their sections
 
 ### For Students
-- **Remain enrolled** in deactivated sections
+- **Remain enrolled** in the section
 - **Can still access** all their content, chapters, and progress
 - **Can still submit** quizzes and complete chapters
 - The section **does not appear** in new enrollment lists
 - No functional changes to their experience
 
+### For Admins
+- **Full visibility** of both active and inactive sections
+- **Can manage** both active and inactive sections
+- **Can bulk deactivate** multiple sections at once
+- **Can bulk delete** sections (permanent removal)
+
 ## Use Cases
 
-### When to Deactivate (Admin Action)
+### When to Deactivate
 - End of semester/term (keep data for records)
 - Temporary suspension of a class
 - Section is full and no longer accepting students
-- Professor is on leave but section data needs to be preserved
-- Compliance or administrative hold on a section
+- Professor is on leave but will return
 
-### When to Delete (Professor or Admin)
+### When to Delete
 - Section was created by mistake
 - Data is no longer needed and can be permanently removed
 - Cleaning up test/demo sections
-
-## Permission Model
-
-| Action | Professor | Admin |
-|--------|-----------|-------|
-| View sections | Own sections only | All sections |
-| Create section | ✓ | ✓ |
-| Edit section | Own sections only | All sections |
-| Delete section | Own sections only | All sections |
-| **Deactivate section** | ✗ | ✓ |
-| **Activate section** | ✗ | ✓ |
-| View inactive sections | Own sections only | All sections |
-| Manage students in inactive section | ✓ | ✓ |
 
 ## API Endpoints
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import Pagination from '../components/Pagination';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
@@ -50,6 +51,8 @@ export default function ChaptersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPrefix, setSelectedPrefix] = useState('');
   const [selectedNumber, setSelectedNumber] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const isAdmin = user?.roleName === 'admin';
 
   useEffect(() => {
@@ -166,6 +169,16 @@ export default function ChaptersPage() {
     
     return matchesSearch && matchesPrefix && matchesNumber && matchesChapter;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedPrefix, selectedNumber, selectedChapter]);
+
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <Layout>
@@ -316,7 +329,7 @@ export default function ChaptersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredStudents.map((student) => (
+                {paginatedStudents.map((student) => (
                   <tr 
                     key={student.userId}
                     onClick={() => handleStudentClick(student)}
@@ -355,6 +368,17 @@ export default function ChaptersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {totalPages > 1 && (
+          <div style={{ marginTop: '1rem' }}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredStudents.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
           </div>
         )}
       </div>

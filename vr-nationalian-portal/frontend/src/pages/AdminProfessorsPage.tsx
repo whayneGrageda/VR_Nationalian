@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import Pagination from '../components/Pagination';
 import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen, X, Archive, Calendar } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
 import './ManagementPage.css';
@@ -46,6 +47,8 @@ export default function AdminProfessorsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     fetchProfessors();
@@ -314,13 +317,7 @@ export default function AdminProfessorsPage() {
     setSelectedProfessors(newSelection);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedProfessors.size === filteredProfessors.length) {
-      setSelectedProfessors(new Set());
-    } else {
-      setSelectedProfessors(new Set(filteredProfessors.map(p => p.userId)));
-    }
-  };
+  // Moving toggleSelectAll closer to pagination logic
 
   const openCreateModal = () => {
     setEditingProfessor(null);
@@ -358,6 +355,33 @@ export default function AdminProfessorsPage() {
     const search = searchQuery.toLowerCase();
     return fullName.includes(search) || username.includes(search);
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const totalPages = Math.ceil(filteredProfessors.length / ITEMS_PER_PAGE);
+  const paginatedProfessors = filteredProfessors.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const toggleSelectAll = () => {
+    if (paginatedProfessors.length === 0) return;
+    
+    const currentViewIds = paginatedProfessors.map(p => p.userId);
+    const allSelectedInView = currentViewIds.every(id => selectedProfessors.has(id));
+    
+    if (allSelectedInView) {
+      const newSelection = new Set(selectedProfessors);
+      currentViewIds.forEach(id => newSelection.delete(id));
+      setSelectedProfessors(newSelection);
+    } else {
+      const newSelection = new Set(selectedProfessors);
+      currentViewIds.forEach(id => newSelection.add(id));
+      setSelectedProfessors(newSelection);
+    }
+  };
 
   return (
     <Layout>
@@ -501,7 +525,7 @@ export default function AdminProfessorsPage() {
                   <th style={{ width: '40px' }}>
                     <input
                       type="checkbox"
-                      checked={selectedProfessors.size === filteredProfessors.length && filteredProfessors.length > 0}
+                      checked={paginatedProfessors.length > 0 && paginatedProfessors.every(p => selectedProfessors.has(p.userId))}
                       onChange={toggleSelectAll}
                     />
                   </th>
@@ -512,7 +536,7 @@ export default function AdminProfessorsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProfessors.map((professor) => (
+                {paginatedProfessors.map((professor) => (
                   <tr 
                     key={professor.userId}
                   >
@@ -573,6 +597,17 @@ export default function AdminProfessorsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {!selectedProfessor && totalPages > 1 && (
+          <div style={{ marginTop: '1rem' }}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredProfessors.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
           </div>
         )}
         </>

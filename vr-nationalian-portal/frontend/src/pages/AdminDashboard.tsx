@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { GraduationCap, BookOpen, Users, Gamepad2, Clock, TrendingUp, Award } from 'lucide-react';
+import { GraduationCap, BookOpen, Users, Clock, TrendingUp, Award } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 import { SkeletonStats, SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import './Dashboard.css';
 
@@ -334,25 +335,37 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 {analytics && analytics.chapterCompletionRates.length > 0 ? (
-                  <div className="table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Chapter</th>
-                          <th>Completions</th>
-                          <th>Rate</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {analytics.chapterCompletionRates.map((chapter) => (
-                          <tr key={chapter.chapterId}>
-                            <td>{chapter.chapterName}</td>
-                            <td>{chapter.completionCount}</td>
-                            <td>{chapter.completionRate.toFixed(1)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div style={{ width: '100%', height: 300, marginTop: '20px' }}>
+                    <ResponsiveContainer>
+                      <BarChart data={analytics.chapterCompletionRates} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis 
+                          dataKey="chapterName" 
+                          stroke="#94a3b8" 
+                          tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'JetBrains Mono' }} 
+                          tickLine={false} 
+                          axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} 
+                        />
+                        <YAxis 
+                          stroke="#94a3b8" 
+                          tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'JetBrains Mono' }} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          tickFormatter={(value) => `${value}%`} 
+                        />
+                        <RechartsTooltip 
+                          cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                          contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: '#f8fafc' }}
+                          itemStyle={{ color: '#60a5fa', fontWeight: 'bold' }}
+                          formatter={(value: any) => [`${Number(value).toFixed(1)}%`, 'Completion Rate']}
+                        />
+                        <Bar dataKey="completionRate" radius={[4, 4, 0, 0]}>
+                          {analytics.chapterCompletionRates.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.completionRate > 80 ? '#4ade80' : entry.completionRate > 50 ? '#60a5fa' : '#c084fc'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
                   <p className="card-text">No chapter data available</p>
@@ -362,25 +375,46 @@ export default function AdminDashboard() {
               <div className="content-card">
                 <h2 className="card-title">Achievement Unlock Rates</h2>
                 {analytics && analytics.achievementUnlockRates.length > 0 ? (
-                  <div className="table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Achievement</th>
-                          <th>Unlocks</th>
-                          <th>Rate</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {analytics.achievementUnlockRates.map((achievement) => (
-                          <tr key={achievement.achievementId}>
-                            <td>{achievement.achievementName}</td>
-                            <td>{achievement.unlockCount}</td>
-                            <td>{achievement.unlockRate.toFixed(1)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div style={{ width: '100%', height: 300, marginTop: '20px' }}>
+                    <ResponsiveContainer>
+                      <BarChart data={analytics.achievementUnlockRates} margin={{ top: 10, right: 30, left: 0, bottom: 20 }} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                        <XAxis 
+                          type="number" 
+                          stroke="#94a3b8" 
+                          tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'JetBrains Mono' }} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          tickFormatter={(value) => `${value}%`} 
+                        />
+                        <YAxis 
+                          type="category" 
+                          dataKey="achievementName" 
+                          stroke="#94a3b8" 
+                          tick={{ fill: '#94a3b8', fontSize: 12, width: 120 }} 
+                          tickLine={false} 
+                          axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} 
+                          width={140}
+                        />
+                        <RechartsTooltip 
+                          cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                          contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: '#f8fafc' }}
+                          itemStyle={{ color: '#c084fc', fontWeight: 'bold' }}
+                          formatter={(value: any) => [`${Number(value).toFixed(1)}%`, 'Unlock Rate']}
+                        />
+                        <Bar dataKey="unlockRate" radius={[0, 4, 4, 0]}>
+                          {analytics.achievementUnlockRates.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={'url(#colorAchievement)'} />
+                          ))}
+                        </Bar>
+                        <defs>
+                          <linearGradient id="colorAchievement" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor="#c084fc" stopOpacity={1}/>
+                          </linearGradient>
+                        </defs>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
                   <p className="card-text">No achievement data available</p>

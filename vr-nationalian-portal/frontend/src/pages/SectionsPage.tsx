@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import Pagination from '../components/Pagination';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive, Power, PowerOff } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
@@ -60,6 +61,9 @@ export default function SectionsPage() {
   const [selectedPrefix, setSelectedPrefix] = useState('');
   const [selectedNumber, setSelectedNumber] = useState('');
   const [selectedSections, setSelectedSections] = useState<Set<number>>(new Set());
+  const [currentSectionPage, setCurrentSectionPage] = useState(1);
+  const [currentStudentPage, setCurrentStudentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     fetchSections();
@@ -128,6 +132,7 @@ export default function SectionsPage() {
 
   const handleSectionClick = (section: Section) => {
     setSelectedSection(section);
+    setCurrentStudentPage(1); // Reset student specific pagination on new section
     fetchStudents(section.sectionId);
   };
 
@@ -346,13 +351,7 @@ export default function SectionsPage() {
     setSelectedSections(newSelection);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedSections.size === filteredSections.length) {
-      setSelectedSections(new Set());
-    } else {
-      setSelectedSections(new Set(filteredSections.map(s => s.sectionId)));
-    }
-  };
+  // Moving toggleSelectAll below paginated array logic
 
   const handleArchiveStudent = async (studentId: string) => {
     if (!confirm('Are you sure you want to archive this student? They will no longer be able to access the system.')) return;
@@ -435,6 +434,39 @@ export default function SectionsPage() {
     return matchesSearch && matchesPrefix && matchesNumber;
   });
 
+  useEffect(() => {
+    setCurrentSectionPage(1);
+  }, [searchQuery, selectedPrefix, selectedNumber]);
+
+  const totalSectionPages = Math.ceil(filteredSections.length / ITEMS_PER_PAGE);
+  const paginatedSections = filteredSections.slice(
+    (currentSectionPage - 1) * ITEMS_PER_PAGE,
+    currentSectionPage * ITEMS_PER_PAGE
+  );
+
+  const totalStudentPages = Math.ceil(students.length / ITEMS_PER_PAGE);
+  const paginatedStudents = students.slice(
+    (currentStudentPage - 1) * ITEMS_PER_PAGE,
+    currentStudentPage * ITEMS_PER_PAGE
+  );
+
+  const toggleSelectAll = () => {
+    if (paginatedSections.length === 0) return;
+    
+    const currentViewIds = paginatedSections.map(s => s.sectionId);
+    const allSelectedInView = currentViewIds.every(id => selectedSections.has(id));
+    
+    if (allSelectedInView) {
+      const newSelection = new Set(selectedSections);
+      currentViewIds.forEach(id => newSelection.delete(id));
+      setSelectedSections(newSelection);
+    } else {
+      const newSelection = new Set(selectedSections);
+      currentViewIds.forEach(id => newSelection.add(id));
+      setSelectedSections(newSelection);
+    }
+  };
+
   return (
     <Layout>
       <div className="management-page">
@@ -491,7 +523,7 @@ export default function SectionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {students.map((student) => (
+                    {paginatedStudents.map((student) => (
                       <tr 
                         key={student.userId}
                         onClick={() => handleStudentClick(student)}
@@ -525,6 +557,17 @@ export default function SectionsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            {totalStudentPages > 1 && (
+              <div style={{ marginTop: '1rem' }}>
+                <Pagination
+                  currentPage={currentStudentPage}
+                  totalPages={totalStudentPages}
+                  onPageChange={setCurrentStudentPage}
+                  totalItems={students.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
               </div>
             )}
           </>
@@ -638,7 +681,7 @@ export default function SectionsPage() {
                         <th style={{ width: '40px' }}>
                           <input
                             type="checkbox"
-                            checked={selectedSections.size === filteredSections.length && filteredSections.length > 0}
+                            checked={paginatedSections.length > 0 && paginatedSections.every(s => selectedSections.has(s.sectionId))}
                             onChange={toggleSelectAll}
                           />
                         </th>
@@ -651,7 +694,7 @@ export default function SectionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredSections.map((section) => (
+                    {paginatedSections.map((section) => (
                       <tr 
                         key={section.sectionId}
                       >
@@ -783,6 +826,17 @@ export default function SectionsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            {totalSectionPages > 1 && (
+              <div style={{ marginTop: '1rem' }}>
+                <Pagination
+                  currentPage={currentSectionPage}
+                  totalPages={totalSectionPages}
+                  onPageChange={setCurrentSectionPage}
+                  totalItems={filteredSections.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
               </div>
             )}
           </>

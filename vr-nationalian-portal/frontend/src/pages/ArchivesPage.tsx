@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import Pagination from '../components/Pagination';
 import { Archive, RefreshCw, Trash2, Users, GraduationCap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SkeletonTable } from '../components/Skeleton';
@@ -32,6 +33,8 @@ export default function ArchivesPage() {
   const [success, setSuccess] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
   const [sections, setSections] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const isAdmin = user?.roleId === 3;
 
@@ -191,14 +194,7 @@ export default function ArchivesPage() {
     setSelectedUsers(newSelection);
   };
 
-  const toggleSelectAll = () => {
-    const currentList = activeTab === 'students' ? filteredStudents : filteredProfessors;
-    if (selectedUsers.size === currentList.length) {
-      setSelectedUsers(new Set());
-    } else {
-      setSelectedUsers(new Set(currentList.map(u => u.userId)));
-    }
-  };
+  // toggleSelectAll moved down
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = 
@@ -218,6 +214,33 @@ export default function ArchivesPage() {
   );
 
   const currentList = activeTab === 'students' ? filteredStudents : filteredProfessors;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedSection, activeTab]);
+
+  const totalPages = Math.ceil(currentList.length / ITEMS_PER_PAGE);
+  const paginatedList = currentList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const toggleSelectAll = () => {
+    if (paginatedList.length === 0) return;
+    
+    const currentViewIds = paginatedList.map(u => u.userId);
+    const allSelectedInView = currentViewIds.every(id => selectedUsers.has(id));
+    
+    if (allSelectedInView) {
+      const newSelection = new Set(selectedUsers);
+      currentViewIds.forEach(id => newSelection.delete(id));
+      setSelectedUsers(newSelection);
+    } else {
+      const newSelection = new Set(selectedUsers);
+      currentViewIds.forEach(id => newSelection.add(id));
+      setSelectedUsers(newSelection);
+    }
+  };
 
   return (
     <Layout>
@@ -309,25 +332,24 @@ export default function ArchivesPage() {
           </div>
         )}
 
-        <div className="content-card">
-          {loading ? (
-            <div className="table-container">
-              <SkeletonTable rows={5} />
-            </div>
-          ) : currentList.length === 0 ? (
-            <div className="empty-state">
-              <Archive size={48} />
-              <p>No archived {activeTab}</p>
-            </div>
-          ) : (
-            <div className="table-container">
-                <table className="data-table">
-                <thead>
+        {loading ? (
+          <div className="table-container">
+            <SkeletonTable rows={5} />
+          </div>
+        ) : currentList.length === 0 ? (
+          <div className="empty-state">
+            <Archive size={48} />
+            <p>No archived {activeTab}</p>
+          </div>
+        ) : (
+          <div className="table-container">
+              <table className="data-table">
+              <thead>
                   <tr>
                     <th style={{ width: '40px' }}>
                       <input
                         type="checkbox"
-                        checked={selectedUsers.size === currentList.length && currentList.length > 0}
+                        checked={paginatedList.length > 0 && paginatedList.every(u => selectedUsers.has(u.userId))}
                         onChange={toggleSelectAll}
                       />
                     </th>
@@ -340,7 +362,7 @@ export default function ArchivesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentList.map((user) => (
+                  {paginatedList.map((user) => (
                     <tr key={user.userId}>
                       <td>
                         <input
@@ -386,7 +408,18 @@ export default function ArchivesPage() {
               </table>
             </div>
           )}
-        </div>
+          
+          {!loading && currentList.length > 0 && totalPages > 1 && (
+            <div style={{ marginTop: '1rem' }}>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={currentList.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+              />
+            </div>
+          )}
       </div>
     </Layout>
   );

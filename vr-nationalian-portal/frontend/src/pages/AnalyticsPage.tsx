@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { TrendingUp, Users, Award, Clock, Target, AlertCircle, BarChart3, AlertTriangle, Timer, BookOpen, Zap, Star } from 'lucide-react';
+import { AreaChart, Area, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { SkeletonStats, SkeletonCard } from '../components/Skeleton';
 import './Dashboard.css';
 import './AnalyticsPage.css';
@@ -193,55 +194,36 @@ export default function AnalyticsPage() {
                     <p className="chart-subtitle">Weekly progress over time</p>
                   </div>
                 </div>
-                <div className="line-chart-container">
-                  <svg className="line-chart" viewBox="0 0 400 200" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="trendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity="0.05" />
-                      </linearGradient>
-                    </defs>
-                    {(() => {
-                      const weeklyData = generateWeeklyTrend();
-                      const maxRate = Math.max(...weeklyData.map(d => d.rate), 100);
-                      const points = weeklyData.map((data, index) => {
-                        const x = (index / (weeklyData.length - 1)) * 400;
-                        const y = 200 - (data.rate / maxRate) * 180;
-                        return `${x},${y}`;
-                      }).join(' ');
-                      
-                      const areaPoints = `0,200 ${points} 400,200`;
-                      
-                      return (
-                        <>
-                          <polyline fill="url(#trendGradient)" points={areaPoints} />
-                          <polyline
-                            fill="none"
-                            stroke="#10b981"
-                            strokeWidth="3"
-                            points={points}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          {weeklyData.map((data, index) => {
-                            const x = (index / (weeklyData.length - 1)) * 400;
-                            const y = 200 - (data.rate / maxRate) * 180;
-                            return (
-                              <circle
-                                key={index}
-                                cx={x}
-                                cy={y}
-                                r="5"
-                                fill="#10b981"
-                                stroke="#111827"
-                                strokeWidth="2"
-                              />
-                            );
-                          })}
-                        </>
-                      );
-                    })()}
-                  </svg>
+                <div className="line-chart-container" style={{ width: '100%', height: '240px', marginTop: '1rem', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: 1, width: '100%' }}>
+                    <ResponsiveContainer>
+                      <AreaChart data={generateWeeklyTrend()} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <RechartsTooltip 
+                          cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '3 3' }}
+                          contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: '#f8fafc', zIndex: 100 }}
+                          itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                          formatter={(value: any) => [`${Number(value).toFixed(0)}%`, 'Completion Rate']}
+                          labelStyle={{ color: '#94a3b8' }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="rate" 
+                          stroke="#10b981" 
+                          strokeWidth={3}
+                          fillOpacity={1} 
+                          fill="url(#trendGradient)" 
+                          activeDot={{ r: 6, fill: '#10b981', stroke: '#111827', strokeWidth: 2 }}
+                          dot={{ r: 5, fill: '#10b981', stroke: '#111827', strokeWidth: 2 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                   <div className="chart-labels">
                     {generateWeeklyTrend().map((data, index) => (
                       <div key={index} className="chart-label">

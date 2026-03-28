@@ -3,37 +3,40 @@
 .analytics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .analytics-metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .metric-card {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  transition: all 0.2s;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .metric-card:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(59, 130, 246, 0.1);
 }
 
 .metric-icon {
   width: 56px;
   height: 56px;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,62 +48,73 @@
 }
 
 .metric-label {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
 }
 
 .metric-value {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #f8fafc;
   margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
 }
 
 .metric-trend {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   font-weight: 500;
 }
 
 .metric-trend.positive {
-  color: #10b981;
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
 }
 
 .metric-trend.negative {
-  color: #ef4444;
+  color: #f87171;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.3);
 }
 
 .metric-trend.neutral {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .analytics-chart-card {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  padding: 1.5rem;
-  transition: all 0.2s;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .analytics-chart-card:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(59, 130, 246, 0.08);
 }
 
 .analytics-chart-card-wide {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  transition: all 0.2s;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .analytics-chart-card-wide:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(59, 130, 246, 0.08);
 }
 
 .chart-header {
@@ -109,12 +123,13 @@
   align-items: flex-start;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .chart-subtitle {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   margin-top: 0.25rem;
 }
 
@@ -129,13 +144,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .legend-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
 }
 
 .legend-label {
@@ -149,19 +165,20 @@
 .stat-value-small {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #f8fafc;
   line-height: 1;
 }
 
 .stat-label-small {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   margin-top: 0.25rem;
 }
 
 .chart-empty {
   text-align: center;
-  color: #64748b;
+  color: #94a3b8;
   padding: 3rem 1rem;
   font-size: 0.875rem;
 }
@@ -179,7 +196,7 @@
 
 .chart-labels {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   padding: 0 1rem;
 }
 
@@ -189,15 +206,16 @@
 }
 
 .label-name {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   margin-bottom: 0.25rem;
 }
 
 .label-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #f8fafc;
 }
 
 /* Difficulty List Styles */
@@ -208,10 +226,16 @@
 }
 
 .difficulty-item {
-  padding: 1rem;
-  background: #0f172a;
-  border-radius: 8px;
-  border: 1px solid #1e293b;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.difficulty-item:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 .difficulty-header {
@@ -223,7 +247,7 @@
 
 .difficulty-name {
   font-weight: 500;
-  color: #e2e8f0;
+  color: #f1f5f9;
   font-size: 0.875rem;
 }
 
@@ -232,23 +256,30 @@
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .difficulty-badge.difficulty-easy {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.15);
 }
 
 .difficulty-badge.difficulty-medium {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  box-shadow: 0 0 8px rgba(251, 146, 60, 0.15);
 }
 
 .difficulty-badge.difficulty-hard {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.15);
 }
 
 .difficulty-stats {
@@ -264,20 +295,21 @@
 }
 
 .difficulty-stat .stat-label {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .difficulty-stat .stat-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #f8fafc;
 }
 
 .difficulty-bar {
   width: 100%;
   height: 6px;
-  background: #1e293b;
+  background: rgba(30, 41, 59, 0.8);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -286,6 +318,7 @@
   height: 100%;
   border-radius: 3px;
   transition: width 0.5s ease;
+  box-shadow: 0 0 6px currentColor;
 }
 
 /* Rarity List Styles */
@@ -299,21 +332,23 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  background: #0f172a;
-  border-radius: 8px;
-  border: 1px solid #1e293b;
-  transition: all 0.2s;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .rarity-item:hover {
-  border-color: #3b82f6;
+  border-color: rgba(96, 165, 250, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.1);
 }
 
 .rarity-icon {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -327,7 +362,7 @@
 .rarity-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: #f1f5f9;
   margin-bottom: 0.25rem;
 }
 
@@ -342,13 +377,15 @@
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .rarity-rate {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 /* At-Risk Students Styles */
@@ -362,19 +399,31 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  background: #0f172a;
-  border-radius: 8px;
-  border: 1px solid #1e293b;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.risk-item:hover {
+  border-color: rgba(248, 113, 113, 0.2);
+  transform: translateY(-2px);
 }
 
 .risk-indicator {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  background: #f87171;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.6);
   flex-shrink: 0;
+  animation: pulseRisk 2s ease-in-out infinite;
+}
+
+@keyframes pulseRisk {
+  0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(248, 113, 113, 0.8); }
 }
 
 .risk-content {
@@ -384,7 +433,7 @@
 .risk-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: #f1f5f9;
   margin-bottom: 0.25rem;
 }
 
@@ -394,8 +443,9 @@
 }
 
 .risk-stat {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .risk-badge {
@@ -403,29 +453,32 @@
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.2);
 }
 
 /* Playtime Distribution - Card Grid Styles */
 .playtime-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
   padding: 0.5rem 0;
 }
 
 .playtime-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  padding: 1rem;
-  transition: all 0.2s;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .playtime-card:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
+  border-color: rgba(96, 165, 250, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
 }
 
 .playtime-card-header {
@@ -438,7 +491,7 @@
 .playtime-icon {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -454,19 +507,20 @@
 .playtime-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: #f1f5f9;
   margin-bottom: 0.25rem;
 }
 
 .playtime-count {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .playtime-bar-container {
   width: 100%;
   height: 8px;
-  background: #1e293b;
+  background: rgba(30, 41, 59, 0.8);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -476,14 +530,16 @@
   height: 100%;
   border-radius: 4px;
   transition: width 0.5s ease;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 0 6px currentColor;
 }
 
 .playtime-percentage {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #3b82f6;
+  color: #60a5fa;
   text-align: center;
+  text-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
 }
 
 /* Responsive Design */

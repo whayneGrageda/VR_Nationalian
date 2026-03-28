@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Layout from '../components/Layout';
+import Pagination from '../components/Pagination';
 import { useAuth } from '../contexts/AuthContext';
 import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award, Archive, Calendar } from 'lucide-react';
 import { SkeletonTable } from '../components/Skeleton';
@@ -94,6 +95,8 @@ export default function StudentsPage() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     if (isAdmin) {
@@ -504,13 +507,7 @@ export default function StudentsPage() {
     setSelectedStudents(newSelection);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedStudents.size === filteredStudents.length) {
-      setSelectedStudents(new Set());
-    } else {
-      setSelectedStudents(new Set(filteredStudents.map(s => s.userId)));
-    }
-  };
+  // Moving toggleSelectAll below filteredStudents definition to access paginated array
 
   const getFullName = (student: Student) => {
     let name = student.firstName;
@@ -582,6 +579,33 @@ export default function StudentsPage() {
     
     return matchesSearch && matchesPrefix && matchesNumber;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedPrefix, selectedNumber]);
+
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const toggleSelectAll = () => {
+    if (paginatedStudents.length === 0) return;
+    
+    const currentViewIds = paginatedStudents.map(s => s.userId);
+    const allSelectedInView = currentViewIds.every(id => selectedStudents.has(id));
+    
+    if (allSelectedInView) {
+      const newSelection = new Set(selectedStudents);
+      currentViewIds.forEach(id => newSelection.delete(id));
+      setSelectedStudents(newSelection);
+    } else {
+      const newSelection = new Set(selectedStudents);
+      currentViewIds.forEach(id => newSelection.add(id));
+      setSelectedStudents(newSelection);
+    }
+  };
 
   return (
     <Layout>
@@ -949,7 +973,7 @@ export default function StudentsPage() {
                       <th style={{ width: '40px' }}>
                         <input
                           type="checkbox"
-                          checked={selectedStudents.size === filteredStudents.length && filteredStudents.length > 0}
+                          checked={paginatedStudents.length > 0 && paginatedStudents.every(s => selectedStudents.has(s.userId))}
                           onChange={toggleSelectAll}
                         />
                       </th>
@@ -961,7 +985,7 @@ export default function StudentsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.map((student) => (
+                    {paginatedStudents.map((student) => (
                       <tr 
                         key={student.userId}
                       >
@@ -1030,6 +1054,17 @@ export default function StudentsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            {totalPages > 1 && (
+              <div style={{ marginTop: '1rem' }}>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredStudents.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
               </div>
             )}
           </>

@@ -39,18 +39,26 @@ function SkeletonLeaderboard() {
   return (
     <div className="leaderboards-container">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="leaderboard-section">
-          <div className="section-header">
-            <div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
-            <div className="skeleton" style={{ width: '150px', height: '16px', borderRadius: '4px' }} />
+        <div key={i} className="leaderboard-content" style={{ display: 'flex', gap: '1.5rem', alignItems: 'stretch' }}>
+          <div className="leaderboard-section" style={{ flex: 1, minWidth: 0, margin: 0 }}>
+            <div className="section-header">
+              <div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
+              <div className="skeleton" style={{ width: '150px', height: '16px', borderRadius: '4px' }} />
+            </div>
+            <div className="podium-container">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="skeleton" style={{ 
+                  flex: 1,
+                  height: j === 2 ? '240px' : j === 1 ? '200px' : '160px',
+                  borderRadius: '12px 12px 0 0'
+                }} />
+              ))}
+            </div>
           </div>
-          <div className="podium-container">
-            {[1, 2, 3].map((j) => (
-              <div key={j} className="skeleton" style={{ 
-                flex: 1,
-                height: j === 2 ? '240px' : j === 1 ? '200px' : '160px',
-                borderRadius: '12px 12px 0 0'
-              }} />
+          <div className="rankings-list" style={{ flex: '0 0 300px' }}>
+            <div className="skeleton" style={{ width: '100px', height: '16px', marginBottom: '1rem', borderRadius: '4px' }} />
+            {[1, 2, 3, 4, 5, 6].map((k) => (
+              <div key={k} className="skeleton" style={{ width: '100%', height: '36px', marginBottom: '0.5rem', borderRadius: '4px' }} />
             ))}
           </div>
         </div>
@@ -151,16 +159,16 @@ export default function LeaderboardPage() {
 
         <div className="leaderboards-container">
           {/* Most Achievements - Podium Style */}
-          <div className="leaderboard-section">
-            <div className="section-header">
-              <Award className="section-icon" size={20} />
-              <div>
-                <h2 className="section-title">Most Achievements</h2>
-                <p className="section-description">Students with the highest number of unlocked achievements</p>
+          <div className="leaderboard-content" style={{ display: 'flex', gap: '1.5rem', alignItems: 'stretch' }}>
+            <div className="leaderboard-section" style={{ flex: 1, minWidth: 0, margin: 0 }}>
+              <div className="section-header">
+                <Award className="section-icon" size={20} />
+                <div>
+                  <h2 className="section-title">Most Achievements</h2>
+                  <p className="section-description">Students with the highest number of unlocked achievements</p>
+                </div>
               </div>
-            </div>
-            {data?.topAchievements && data.topAchievements.length > 0 ? (
-              <div className="leaderboard-content">
+              {data?.topAchievements && data.topAchievements.length > 0 ? (
                 <div className="podium-container">
                   {data.topAchievements.slice(0, 3).map((entry) => (
                     <div 
@@ -178,42 +186,44 @@ export default function LeaderboardPage() {
                     </div>
                   ))}
                 </div>
-                <div className="rankings-list">
-                  <div className="rankings-header">Other Rankings</div>
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const rank = i + 4;
-                    const entry = data.topAchievements.find(e => e.rank === rank);
-                    return (
-                      <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
-                        <div className="ranking-position">#{rank}</div>
-                        <div className="ranking-info">
-                          <div className="ranking-name">{entry ? getFullName(entry) : '—'}</div>
-                        </div>
-                        <div className="ranking-value">{entry ? entry.achievementCount : '—'}</div>
-                      </div>
-                    );
-                  })}
+              ) : (
+                <div className="empty-state-compact">
+                  <Award size={32} />
+                  <p>No data</p>
                 </div>
-              </div>
-            ) : (
-              <div className="empty-state-compact">
-                <Award size={32} />
-                <p>No data</p>
+              )}
+            </div>
+            {data?.topAchievements && data.topAchievements.length > 0 && (
+              <div className="rankings-list">
+                <div className="rankings-header">Other Rankings</div>
+                {Array.from({ length: 7 }, (_, i) => {
+                  const rank = i + 4;
+                  const entry = data.topAchievements.find(e => e.rank === rank);
+                  return (
+                    <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
+                      <div className="ranking-position">#{rank}</div>
+                      <div className="ranking-info">
+                        <div className="ranking-name">{entry ? getFullName(entry) : '—'}</div>
+                      </div>
+                      <div className="ranking-value">{entry ? entry.achievementCount : '—'}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
           {/* Fastest Completion */}
-          <div className="leaderboard-section">
-            <div className="section-header">
-              <Zap className="section-icon" size={20} />
-              <div>
-                <h2 className="section-title">Fastest Completion</h2>
-                <p className="section-description">Students who completed all 4 chapters in the shortest time</p>
+          <div className="leaderboard-content" style={{ display: 'flex', gap: '1.5rem', alignItems: 'stretch' }}>
+            <div className="leaderboard-section" style={{ flex: 1, minWidth: 0, margin: 0 }}>
+              <div className="section-header">
+                <Zap className="section-icon" size={20} />
+                <div>
+                  <h2 className="section-title">Fastest Completion</h2>
+                  <p className="section-description">Students who completed all 4 chapters in the shortest time</p>
+                </div>
               </div>
-            </div>
-            {data?.topSpeedrunners && data.topSpeedrunners.length > 0 ? (
-              <div className="leaderboard-content">
+              {data?.topSpeedrunners && data.topSpeedrunners.length > 0 ? (
                 <div className="podium-container">
                   {data.topSpeedrunners.slice(0, 3).map((entry) => (
                     <div 
@@ -231,42 +241,44 @@ export default function LeaderboardPage() {
                     </div>
                   ))}
                 </div>
-                <div className="rankings-list">
-                  <div className="rankings-header">Other Rankings</div>
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const rank = i + 4;
-                    const entry = data.topSpeedrunners.find(e => e.rank === rank);
-                    return (
-                      <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
-                        <div className="ranking-position">#{rank}</div>
-                        <div className="ranking-info">
-                          <div className="ranking-name">{entry ? getFullName(entry) : '—'}</div>
-                        </div>
-                        <div className="ranking-value">{entry ? formatTime(entry.completionTimeMinutes) : '—'}</div>
-                      </div>
-                    );
-                  })}
+              ) : (
+                <div className="empty-state-compact">
+                  <Zap size={32} />
+                  <p>No data</p>
                 </div>
-              </div>
-            ) : (
-              <div className="empty-state-compact">
-                <Zap size={32} />
-                <p>No data</p>
+              )}
+            </div>
+            {data?.topSpeedrunners && data.topSpeedrunners.length > 0 && (
+              <div className="rankings-list">
+                <div className="rankings-header">Other Rankings</div>
+                {Array.from({ length: 7 }, (_, i) => {
+                  const rank = i + 4;
+                  const entry = data.topSpeedrunners.find(e => e.rank === rank);
+                  return (
+                    <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
+                      <div className="ranking-position">#{rank}</div>
+                      <div className="ranking-info">
+                        <div className="ranking-name">{entry ? getFullName(entry) : '—'}</div>
+                      </div>
+                      <div className="ranking-value">{entry ? formatTime(entry.completionTimeMinutes) : '—'}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
           {/* Top Sections */}
-          <div className="leaderboard-section">
-            <div className="section-header">
-              <TrendingUp className="section-icon" size={20} />
-              <div>
-                <h2 className="section-title">Top Sections</h2>
-                <p className="section-description">Sections with the most students completing all chapters</p>
+          <div className="leaderboard-content" style={{ display: 'flex', gap: '1.5rem', alignItems: 'stretch' }}>
+            <div className="leaderboard-section" style={{ flex: 1, minWidth: 0, margin: 0 }}>
+              <div className="section-header">
+                <TrendingUp className="section-icon" size={20} />
+                <div>
+                  <h2 className="section-title">Top Sections</h2>
+                  <p className="section-description">Sections with the most students completing all chapters</p>
+                </div>
               </div>
-            </div>
-            {data?.topSections && data.topSections.length > 0 ? (
-              <div className="leaderboard-content">
+              {data?.topSections && data.topSections.length > 0 ? (
                 <div className="podium-container">
                   {data.topSections.slice(0, 3).map((entry) => (
                     <div 
@@ -285,28 +297,30 @@ export default function LeaderboardPage() {
                     </div>
                   ))}
                 </div>
-                <div className="rankings-list">
-                  <div className="rankings-header">Other Rankings</div>
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const rank = i + 4;
-                    const entry = data.topSections.find(e => e.rank === rank);
-                    return (
-                      <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
-                        <div className="ranking-position">#{rank}</div>
-                        <div className="ranking-info">
-                          <div className="ranking-name">{entry ? entry.sectionName : '—'}</div>
-                          {entry && <div className="ranking-detail">{entry.completedStudents}/{entry.totalStudents}</div>}
-                        </div>
-                        <div className="ranking-value">{entry ? `${entry.completionRate}%` : '—'}</div>
-                      </div>
-                    );
-                  })}
+              ) : (
+                <div className="empty-state-compact">
+                  <Users size={32} />
+                  <p>No data</p>
                 </div>
-              </div>
-            ) : (
-              <div className="empty-state-compact">
-                <Users size={32} />
-                <p>No data</p>
+              )}
+            </div>
+            {data?.topSections && data.topSections.length > 0 && (
+              <div className="rankings-list">
+                <div className="rankings-header">Other Rankings</div>
+                {Array.from({ length: 7 }, (_, i) => {
+                  const rank = i + 4;
+                  const entry = data.topSections.find(e => e.rank === rank);
+                  return (
+                    <div key={rank} className={`ranking-item ${!entry ? 'empty' : ''}`}>
+                      <div className="ranking-position">#{rank}</div>
+                      <div className="ranking-info">
+                        <div className="ranking-name">{entry ? entry.sectionName : '—'}</div>
+                        {entry && <div className="ranking-detail">{entry.completedStudents}/{entry.totalStudents}</div>}
+                      </div>
+                      <div className="ranking-value">{entry ? `${entry.completionRate}%` : '—'}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

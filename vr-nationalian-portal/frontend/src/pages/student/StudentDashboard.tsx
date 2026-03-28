@@ -256,18 +256,39 @@ export default function StudentDashboard() {
                           alignItems: 'center',
                           gap: '12px',
                           padding: '12px',
-                          background: '#0f172a',
-                          border: '1px solid #1e293b',
-                          borderRadius: '8px',
-                          transition: 'all 0.2s'
+                          background: 'linear-gradient(135deg, rgba(30,41,59,0.5), rgba(15,23,42,0.8))',
+                          backdropFilter: 'blur(8px)',
+                          border: '1px solid rgba(168,85,247,0.3)',
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 4px 15px rgba(0,0,0,0.3), inset 0 0 10px rgba(168,85,247,0.05)',
+                          cursor: 'default'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-3px)';
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(168,85,247,0.2), inset 0 0 15px rgba(168,85,247,0.2)';
+                          e.currentTarget.style.borderColor = 'rgba(168,85,247,0.6)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3), inset 0 0 10px rgba(168,85,247,0.05)';
+                          e.currentTarget.style.borderColor = 'rgba(168,85,247,0.3)';
                         }}
                       >
-                        <Trophy size={18} style={{ color: '#a855f7', flexShrink: 0 }} />
+                        <div style={{
+                          background: 'rgba(168,85,247,0.15)',
+                          padding: '10px',
+                          borderRadius: '10px',
+                          boxShadow: '0 0 10px rgba(168,85,247,0.3)',
+                          border: '1px solid rgba(192,132,252,0.2)'
+                        }}>
+                          <Trophy size={20} style={{ color: '#c084fc', flexShrink: 0 }} />
+                        </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#e2e8f0', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: '15px', fontWeight: '600', color: '#f8fafc', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 10px rgba(255,255,255,0.1)' }}>
                             {achievement.achievementName}
                           </div>
-                          <div style={{ fontSize: '12px', color: '#64748b' }}>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'JetBrains Mono', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             {getTimeAgo(achievement.unlockedAt)}
                           </div>
                         </div>
@@ -292,35 +313,58 @@ export default function StudentDashboard() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '12px',
-                          padding: '12px',
-                          background: '#0f172a',
-                          border: chapter.isCompleted ? '1px solid #22c55e' : '1px solid #1e293b',
-                          borderRadius: '8px'
+                          padding: '14px',
+                          background: chapter.isCompleted ? 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(15,23,42,0.6))' : 'rgba(15,23,42,0.6)',
+                          backdropFilter: 'blur(8px)',
+                          border: chapter.isCompleted ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(255,255,255,0.05)',
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          boxShadow: chapter.isCompleted ? '0 4px 15px rgba(34,197,94,0.05)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          if (!chapter.isCompleted) {
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                          } else {
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(34,197,94,0.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          if (!chapter.isCompleted) {
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                          } else {
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(34,197,94,0.05)';
+                          }
                         }}
                       >
                         {chapter.isCompleted ? (
-                          <CheckCircle size={18} style={{ color: '#22c55e', flexShrink: 0 }} />
+                          <div style={{ background: 'rgba(34,197,94,0.15)', padding: '6px', borderRadius: '50%', boxShadow: '0 0 10px rgba(34,197,94,0.3)' }}>
+                            <CheckCircle size={18} style={{ color: '#4ade80', flexShrink: 0 }} />
+                          </div>
                         ) : (
-                          <Circle size={18} style={{ color: '#64748b', flexShrink: 0 }} />
+                          <Circle size={18} style={{ color: '#475569', flexShrink: 0 }} />
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#e2e8f0', marginBottom: '2px' }}>
+                          <div style={{ fontSize: '15px', fontWeight: '500', color: chapter.isCompleted ? '#f8fafc' : '#cbd5e1', marginBottom: '2px' }}>
                             {chapter.chapterName}
                           </div>
-                          <div style={{ fontSize: '12px', color: '#64748b' }}>
+                          <div style={{ fontSize: '12px', color: '#64748b', fontFamily: 'JetBrains Mono' }}>
                             {chapter.isCompleted 
                               ? chapter.quizScore !== undefined 
-                                ? `Score: ${chapter.quizScore}/${chapter.quizTotal} • ${chapter.completedAt ? getTimeAgo(chapter.completedAt) : 'Completed'}`
-                                : chapter.completedAt ? getTimeAgo(chapter.completedAt) : 'Completed'
-                              : 'Not started'}
+                                ? `SCORE: ${chapter.quizScore}/${chapter.quizTotal} • ${chapter.completedAt ? getTimeAgo(chapter.completedAt) : 'FINISHED'}`
+                                : chapter.completedAt ? getTimeAgo(chapter.completedAt) : 'FINISHED'
+                              : 'LOCKED'}
                           </div>
                         </div>
                         {chapter.quizScore !== undefined && chapter.quizTotal && (
                           <div style={{ 
-                            fontSize: '14px', 
-                            fontWeight: '600', 
-                            color: (chapter.quizScore / chapter.quizTotal) >= 0.8 ? '#22c55e' : (chapter.quizScore / chapter.quizTotal) >= 0.6 ? '#f59e0b' : '#64748b',
-                            flexShrink: 0
+                            fontSize: '16px', 
+                            fontWeight: '700', 
+                            fontFamily: 'JetBrains Mono',
+                            color: (chapter.quizScore / chapter.quizTotal) >= 0.8 ? '#4ade80' : (chapter.quizScore / chapter.quizTotal) >= 0.6 ? '#fb923c' : '#94a3b8',
+                            flexShrink: 0,
+                            textShadow: (chapter.quizScore / chapter.quizTotal) >= 0.8 ? '0 0 10px rgba(74,222,128,0.4)' : 'none'
                           }}>
                             {Math.round((chapter.quizScore / chapter.quizTotal) * 100)}%
                           </div>
