@@ -266,8 +266,8 @@ export default function StudentDashboard() {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.transform = 'translateY(-3px)';
-                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(168,85,247,0.2), inset 0 0 15px rgba(168,85,247,0.2)';
-                          e.currentTarget.style.borderColor = 'rgba(168,85,247,0.6)';
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(168,85,247,0.1), inset 0 0 15px rgba(168,85,247,0.1)';
+                          e.currentTarget.style.borderColor = 'rgba(168,85,247,0.4)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = 'translateY(0)';
@@ -279,7 +279,7 @@ export default function StudentDashboard() {
                           background: 'rgba(168,85,247,0.15)',
                           padding: '10px',
                           borderRadius: '10px',
-                          boxShadow: '0 0 10px rgba(168,85,247,0.3)',
+                          boxShadow: '0 0 12px rgba(168,85,247,0.15)',
                           border: '1px solid rgba(192,132,252,0.2)'
                         }}>
                           <Trophy size={20} style={{ color: '#c084fc', flexShrink: 0 }} />
@@ -339,7 +339,7 @@ export default function StudentDashboard() {
                         }}
                       >
                         {chapter.isCompleted ? (
-                          <div style={{ background: 'rgba(34,197,94,0.15)', padding: '6px', borderRadius: '50%', boxShadow: '0 0 10px rgba(34,197,94,0.3)' }}>
+                          <div style={{ background: 'rgba(34,197,94,0.15)', padding: '6px', borderRadius: '50%', boxShadow: '0 0 12px rgba(34,197,94,0.15)' }}>
                             <CheckCircle size={18} style={{ color: '#4ade80', flexShrink: 0 }} />
                           </div>
                         ) : (
@@ -364,7 +364,7 @@ export default function StudentDashboard() {
                             fontFamily: 'JetBrains Mono',
                             color: (chapter.quizScore / chapter.quizTotal) >= 0.8 ? '#4ade80' : (chapter.quizScore / chapter.quizTotal) >= 0.6 ? '#fb923c' : '#94a3b8',
                             flexShrink: 0,
-                            textShadow: (chapter.quizScore / chapter.quizTotal) >= 0.8 ? '0 0 10px rgba(74,222,128,0.4)' : 'none'
+                            textShadow: (chapter.quizScore / chapter.quizTotal) >= 0.8 ? '0 0 12px rgba(74,222,128,0.2)' : 'none'
                           }}>
                             {Math.round((chapter.quizScore / chapter.quizTotal) * 100)}%
                           </div>
