@@ -62,10 +62,10 @@ export default function ChaptersPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const studentsEndpoint = isAdmin 
-        ? '/api/quiz-scores' 
+      const studentsEndpoint = isAdmin
+        ? '/api/quiz-scores'
         : `/api/quiz-scores/professor/${user?.userId}`;
-      
+
       const [studentsRes, sectionsRes] = await Promise.all([
         fetch(studentsEndpoint),
         isAdmin ? fetch('/api/sections') : fetch(`/api/sections/professor/${user?.userId}`)
@@ -110,23 +110,23 @@ export default function ChaptersPage() {
     const prefixes = new Set<string>();
     const allNumbers = new Set<string>();
     const prefixToNumbers = new Map<string, Set<string>>();
-    
+
     sections.forEach(section => {
       const match = section.sectionName.match(/^([A-Z]+)[\s-]?(\d+)/i);
       if (match) {
         const prefix = match[1].toUpperCase();
         const number = match[2];
-        
+
         prefixes.add(prefix);
         allNumbers.add(number);
-        
+
         if (!prefixToNumbers.has(prefix)) {
           prefixToNumbers.set(prefix, new Set<string>());
         }
         prefixToNumbers.get(prefix)!.add(number);
       }
     });
-    
+
     return {
       prefixes: Array.from(prefixes).sort(),
       allNumbers: Array.from(allNumbers).sort((a, b) => parseInt(a) - parseInt(b)),
@@ -135,7 +135,7 @@ export default function ChaptersPage() {
   };
 
   const { prefixes, allNumbers, prefixToNumbers } = extractSectionParts();
-  
+
   const availableNumbers = selectedPrefix && prefixToNumbers.has(selectedPrefix)
     ? Array.from(prefixToNumbers.get(selectedPrefix)!).sort((a, b) => parseInt(a) - parseInt(b))
     : allNumbers;
@@ -154,7 +154,7 @@ export default function ChaptersPage() {
       const match = sectionName.match(/^([A-Z]+)/i);
       matchesPrefix = match ? match[1].toUpperCase() === selectedPrefix : false;
     }
-    
+
     let matchesNumber = true;
     if (selectedNumber) {
       const match = sectionName.match(/(\d+)/);
@@ -166,7 +166,7 @@ export default function ChaptersPage() {
     if (selectedChapter) {
       matchesChapter = student.scores.some(s => s.chapterId === selectedChapter);
     }
-    
+
     return matchesSearch && matchesPrefix && matchesNumber && matchesChapter;
   });
 
@@ -193,14 +193,14 @@ export default function ChaptersPage() {
         {error && <div className="error-banner">{error}</div>}
 
         {/* Chapter Cards */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '1rem', 
-          marginBottom: '2rem' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1rem',
+          marginBottom: '2rem'
         }}>
           {CHAPTERS.map((chapter) => {
-            const studentsWithChapter = students.filter(s => 
+            const studentsWithChapter = students.filter(s =>
               s.scores.some(score => score.chapterId === chapter.id)
             );
             const isSelected = selectedChapter === chapter.id;
@@ -209,34 +209,44 @@ export default function ChaptersPage() {
               <div
                 key={chapter.id}
                 onClick={() => setSelectedChapter(isSelected ? null : chapter.id)}
+                className="stat-card"
                 style={{
-                  background: isSelected ? chapter.color : '#1e293b',
-                  border: `2px solid ${isSelected ? chapter.color : '#334155'}`,
-                  borderRadius: '8px',
-                  padding: '1.5rem',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  transform: isSelected ? 'scale(1.02)' : 'scale(1)'
+                  borderColor: isSelected ? chapter.color : '',
+                  transform: isSelected ? 'translateY(-4px) scale(1.02)' : '',
+                  boxShadow: isSelected ? `0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px ${chapter.color}20, 0 0 15px ${chapter.color}40` : ''
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  <BookOpen size={24} color={isSelected ? '#fff' : chapter.color} />
-                  <h3 style={{ 
-                    fontSize: '1.125rem', 
-                    fontWeight: 600, 
-                    color: isSelected ? '#fff' : '#e2e8f0',
-                    margin: 0
-                  }}>
-                    {chapter.name}
-                  </h3>
-                </div>
-                <p style={{ 
-                  fontSize: '0.875rem', 
-                  color: isSelected ? 'rgba(255,255,255,0.9)' : '#94a3b8',
-                  margin: 0
+                <div className="stat-icon" style={{
+                  color: chapter.color,
+                  border: `1px solid ${chapter.color}4d`,
+                  background: `linear-gradient(135deg, ${chapter.color}33, ${chapter.color}0d)`,
+                  boxShadow: `0 0 15px ${chapter.color}4d`
                 }}>
-                  {studentsWithChapter.length} student{studentsWithChapter.length !== 1 ? 's' : ''} completed
-                </p>
+                  <BookOpen size={28} />
+                </div>
+                <div className="stat-content">
+                  <div className="stat-label" style={{
+                    color: isSelected ? chapter.color : '',
+                    textShadow: isSelected ? `0 0 10px ${chapter.color}80` : ''
+                  }}>
+                    {chapter.name.toUpperCase()}
+                  </div>
+                  <div className="stat-value" style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                    {studentsWithChapter.length}
+                    <span style={{
+                      fontSize: '0.75rem',
+                      color: '#64748b',
+                      fontWeight: 'normal',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                      letterSpacing: 'normal',
+                      textTransform: 'none',
+                      textShadow: 'none'
+                    }}>
+                      student{studentsWithChapter.length !== 1 ? 's' : ''} completed
+                    </span>
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -330,7 +340,7 @@ export default function ChaptersPage() {
               </thead>
               <tbody>
                 {paginatedStudents.map((student) => (
-                  <tr 
+                  <tr
                     key={student.userId}
                     onClick={() => handleStudentClick(student)}
                     style={{ cursor: 'pointer' }}
