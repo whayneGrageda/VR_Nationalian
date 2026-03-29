@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Layout from '../components/Layout';
-import Pagination from '../components/Pagination';
-import { useAuth } from '../contexts/AuthContext';
+import Layout from '../../components/Layout';
+import Pagination from '../../components/Pagination';
+import { useAuth } from '../../contexts/AuthContext';
 import { Users, BookOpen, Edit2, Trash2, ArrowLeft, Trophy, Target, Medal, Zap, Award, Archive, Calendar } from 'lucide-react';
-import { SkeletonTable } from '../components/Skeleton';
-import { getUserFriendlyError, handleApiResponse } from '../utils/errorHandler';
-import './ManagementPage.css';
+import { SkeletonTable } from '../../components/Skeleton';
+import { getUserFriendlyError, handleApiResponse } from '../../utils/errorHandler';
+import '../shared/ManagementPage.css';
 
 interface Student {
   userId: string;

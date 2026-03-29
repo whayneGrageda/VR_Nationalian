@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import Pagination from '../components/Pagination';
+import Layout from '../../components/Layout';
+import Pagination from '../../components/Pagination';
 import { GraduationCap, Edit2, Trash2, ArrowLeft, BookOpen, X, Archive, Calendar } from 'lucide-react';
-import { SkeletonTable } from '../components/Skeleton';
-import './ManagementPage.css';
+import { SkeletonTable } from '../../components/Skeleton';
+import '../shared/ManagementPage.css';
 
 interface Professor {
   userId: number;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import StudentLayout from '../components/StudentLayout';
-import { useAuth } from '../contexts/AuthContext';
+import Layout from '../../components/Layout';
+import StudentLayout from '../../components/StudentLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import { Zap, Users, Award, TrendingUp, Medal, Crown, Star } from 'lucide-react';
 import './LeaderboardPage.css';
 

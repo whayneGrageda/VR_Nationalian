@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { getUserFriendlyError, handleApiResponse } from '../utils/errorHandler';
+import { useAuth } from '../../contexts/AuthContext';
+import { getUserFriendlyError, handleApiResponse } from '../../utils/errorHandler';
 import './LoginPage.css';
 
 export default function LoginPage() {

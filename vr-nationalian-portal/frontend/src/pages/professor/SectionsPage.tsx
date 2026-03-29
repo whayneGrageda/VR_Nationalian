@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/Layout';
-import Pagination from '../components/Pagination';
-import { useAuth } from '../contexts/AuthContext';
+import Layout from '../../components/Layout';
+import Pagination from '../../components/Pagination';
+import { useAuth } from '../../contexts/AuthContext';
 import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive, Power, PowerOff } from 'lucide-react';
-import { SkeletonTable } from '../components/Skeleton';
-import { getUserFriendlyError, handleApiResponse } from '../utils/errorHandler';
-import './ManagementPage.css';
+import { SkeletonTable } from '../../components/Skeleton';
+import { getUserFriendlyError, handleApiResponse } from '../../utils/errorHandler';
+import '../shared/ManagementPage.css';
 
 interface Section {
   sectionId: number;

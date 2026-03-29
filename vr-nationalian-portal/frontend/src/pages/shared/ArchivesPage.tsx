@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import Pagination from '../components/Pagination';
+import Layout from '../../components/Layout';
+import Pagination from '../../components/Pagination';
 import { Archive, RefreshCw, Trash2, Users, GraduationCap } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { SkeletonTable } from '../components/Skeleton';
+import { useAuth } from '../../contexts/AuthContext';
+import { SkeletonTable } from '../../components/Skeleton';
 import './ManagementPage.css';
 
 interface ArchivedUser {

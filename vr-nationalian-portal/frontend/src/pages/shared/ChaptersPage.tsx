@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/Layout';
-import Pagination from '../components/Pagination';
-import { useAuth } from '../contexts/AuthContext';
+import Layout from '../../components/Layout';
+import Pagination from '../../components/Pagination';
+import { useAuth } from '../../contexts/AuthContext';
 import { BookOpen, ChevronRight } from 'lucide-react';
-import { SkeletonTable } from '../components/Skeleton';
+import { SkeletonTable } from '../../components/Skeleton';
 import './ManagementPage.css';
 
 interface QuizScore {

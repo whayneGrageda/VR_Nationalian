@@ -3,7 +3,7 @@ import StudentLayout from '../../components/StudentLayout';
 import { Gamepad2, Star, Trophy, BarChart3, Clock, Award, CheckCircle, Circle, Target } from 'lucide-react';
 import { SkeletonStats } from '../../components/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
-import '../Dashboard.css';
+import '../shared/Dashboard.css';
 
 interface ChapterProgress {
   chapterId: number;
@@ -147,7 +147,7 @@ export default function StudentDashboard() {
             <SkeletonStats count={4} />
             
             {/* Skeleton for Recent Achievements and Chapter Progress */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div className="content-card">
                 <div className="skeleton skeleton-title" style={{ marginBottom: '16px', width: '200px' }} />
                 <div style={{ display: 'grid', gap: '8px' }}>
@@ -179,7 +179,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Skeleton for Recent Activity and Analytics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
               <div className="content-card">
                 <div className="skeleton skeleton-title" style={{ marginBottom: '16px', width: '150px' }} />
                 <div style={{ display: 'grid', gap: '8px' }}>
@@ -242,7 +242,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Recent Achievements and Chapter Progress - Side by Side */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
               {/* Recent Achievements */}
               {stats.recentAchievements.length > 0 && (
                 <div className="content-card">
@@ -377,7 +377,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Recent Activity and Analytics - Side by Side */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
               {/* Recent Activity */}
               <div className="content-card">
                 <h2 className="card-title" style={{ marginBottom: '16px' }}>Recent Activity</h2>
@@ -495,14 +495,7 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* Continue Learning CTA */}
-            {stats.chaptersCompleted === 0 && (
-              <div className="content-card" style={{ textAlign: 'center', background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }}>
-                <Gamepad2 size={48} style={{ margin: '0 auto 12px', color: '#60a5fa' }} />
-                <h2 className="card-title">Ready to Start?</h2>
-                <p className="card-text">Launch the VR Nationalian mobile app to begin your journey.</p>
-              </div>
-            )}
+
           </>
         )}
       </div>

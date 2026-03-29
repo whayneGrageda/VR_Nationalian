@@ -3,7 +3,7 @@ import StudentLayout from '../../components/StudentLayout';
 import { Smartphone } from 'lucide-react';
 import { SkeletonTable, SkeletonCard } from '../../components/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
-import '../ManagementPage.css';
+import '../shared/ManagementPage.css';
 import './StudentPages.css';
 
 interface Chapter {

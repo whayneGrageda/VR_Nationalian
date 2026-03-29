@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import StudentLayout from '../../components/StudentLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import '../ManagementPage.css';
+import '../shared/ManagementPage.css';
 import './StudentPages.css';
 
 export default function StudentSettings() {

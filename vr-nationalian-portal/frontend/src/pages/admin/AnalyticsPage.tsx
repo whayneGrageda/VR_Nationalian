@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
+import Layout from '../../components/Layout';
 import { TrendingUp, Users, Award, Clock, Target, AlertCircle, BarChart3, AlertTriangle, Timer, BookOpen, Zap, Star } from 'lucide-react';
 import { AreaChart, Area, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { SkeletonStats, SkeletonCard } from '../components/Skeleton';
-import './Dashboard.css';
+import { SkeletonStats, SkeletonCard } from '../../components/Skeleton';
+import '../shared/Dashboard.css';
 import './AnalyticsPage.css';
 
 interface ChapterCompletionRate {

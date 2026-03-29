@@ -1,19 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginPage from './pages/LoginPage';
-import ProfessorDashboard from './pages/ProfessorDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import SectionsPage from './pages/SectionsPage';
-import StudentsPage from './pages/StudentsPage';
-import AdminProfessorsPage from './pages/AdminProfessorsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
+import LoginPage from './pages/shared/LoginPage';
+import ProfessorDashboard from './pages/professor/ProfessorDashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import SectionsPage from './pages/professor/SectionsPage';
+import StudentsPage from './pages/professor/StudentsPage';
+import AdminProfessorsPage from './pages/admin/AdminProfessorsPage';
+import AnalyticsPage from './pages/admin/AnalyticsPage';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentAchievements from './pages/student/StudentAchievements';
 import StudentAssessments from './pages/student/StudentAssessments';
 import StudentSettings from './pages/student/StudentSettings';
-import LeaderboardPage from './pages/LeaderboardPage';
-import ChaptersPage from './pages/ChaptersPage';
-import ArchivesPage from './pages/ArchivesPage';
+import LeaderboardPage from './pages/shared/LeaderboardPage';
+import ChaptersPage from './pages/shared/ChaptersPage';
+import ArchivesPage from './pages/shared/ArchivesPage';
+import AdminStudentsPage from './pages/admin/AdminStudentsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppRoutes() {

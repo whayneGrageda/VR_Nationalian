@@ -3,7 +3,7 @@ import StudentLayout from '../../components/StudentLayout';
 import { Target, Zap, Award, Calendar, Search, Crown, Lock } from 'lucide-react';
 import { SkeletonCard } from '../../components/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
-import '../ManagementPage.css';
+import '../shared/ManagementPage.css';
 import './StudentPages.css';
 
 interface Achievement {
