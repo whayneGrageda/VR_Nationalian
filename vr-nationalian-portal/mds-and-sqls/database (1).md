@@ -214,8 +214,91 @@ Fires before any UPDATE on `tbluserprofiles`. Sets `updated_at = NOW()` automati
 
 #### `fn_login(p_username, p_password, p_device_type)`
 Authenticates a user by username and bcrypt password comparison. First verifies credentials, then checks that the user account is active (`is_active = true`). Deletes any existing session for that user+device combination, creates a new 30-day session token, and returns a JSON object with `user_id`, `username`, `email`, `role_id`, `first_name`, `middle_initial`, `last_name`, `section_id`, `token`, and `expires_at`. Returns an error JSON with `success: false` and specific error messages:
-- "Invalid username or password" for incorrect credentials
+- "User not found" when username doesn't exist
+- "Invalid credentials" when password is incorrect
 - "Account deactivated. Please contact administrator." for archived/inactive accounts
+
+**Security Note:** Distinguishing between "User not found" and "Invalid credentials" enables username enumeration attacks. For production, consider using the same message for both cases.
+
+**SQL Implementation:**
+```sql
+CREATE OR REPLACE FUNCTION fn_login(
+    p_username TEXT,
+    p_password TEXT,
+    p_device_type TEXT DEFAULT 'unity'
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_user tblusers%ROWTYPE;
+    v_token TEXT;
+    v_expires_at TIMESTAMPTZ := NOW() + INTERVAL '30 days';
+BEGIN
+    -- Step 1: Find user by username only
+    SELECT * INTO v_user
+    FROM tblusers
+    WHERE username = p_username;
+
+    -- Step 2: If user not found, return error
+    IF NOT FOUND THEN
+        RETURN json_build_object(
+            'success', false,
+            'message', 'User not found'
+        );
+    END IF;
+
+    -- Step 3: Verify password using bcrypt (CRITICAL SECURITY CHECK)
+    IF v_user.password != crypt(p_password, v_user.password) THEN
+        RETURN json_build_object(
+            'success', false,
+            'message', 'Invalid credentials'
+        );
+    END IF;
+
+    -- Step 4: Check if account is active
+    IF NOT v_user.is_active THEN
+        RETURN json_build_object(
+            'success', false,
+            'message', 'Account deactivated. Please contact administrator.'
+        );
+    END IF;
+
+    -- Step 5: Generate session token
+    v_token := encode(gen_random_bytes(32), 'base64');
+
+    -- Step 6: Delete old sessions for this user+device
+    DELETE FROM tblsessions
+    WHERE user_id = v_user.user_id AND device_type = p_device_type;
+
+    -- Step 7: Create new session
+    INSERT INTO tblsessions (user_id, token, device_type, expires_at)
+    VALUES (v_user.user_id, v_token, p_device_type, v_expires_at);
+
+    -- Step 8: Return success with user data
+    RETURN json_build_object(
+        'user_id', v_user.user_id,
+        'username', v_user.username,
+        'email', v_user.email,
+        'role_id', v_user.role_id,
+        'first_name', v_user.first_name,
+        'middle_initial', v_user.middle_initial,
+        'last_name', v_user.last_name,
+        'section_id', v_user.section_id,
+        'token', v_token,
+        'expires_at', v_expires_at
+    );
+END;
+$$;
+```
+
+**IMPORTANT SECURITY NOTES:**
+- The function MUST use `crypt(p_password, v_user.password)` to verify passwords with bcrypt
+- Never compare passwords directly with `WHERE username = p_username AND password = p_password`
+- **Security Warning:** Returning different messages for "User not found" vs "Invalid credentials" enables username enumeration attacks. Attackers can test which usernames exist in your system. For production environments, consider returning the same generic message "Invalid credentials" for both cases to prevent username enumeration.
+- Always return the same error message for both invalid username and invalid password to prevent username enumeration
+- Check `is_active` status before allowing login
 
 #### `fn_register(p_username, p_password, p_email, p_device_type)`
 Registers a new student account (role_id = 1). Hashes the password with bcrypt, inserts the user into `tblusers`, creates a session token, and returns user info with the session token. Profile and chapter records are created automatically via triggers.

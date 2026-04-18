@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut, TrendingUp, Trophy, FileText, Archive } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut, TrendingUp, Trophy, FileText, Archive, QrCode } from 'lucide-react';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -23,6 +23,7 @@ export default function Sidebar() {
         { path: '/professor/sections', label: 'My Sections', icon: BookOpen },
         { path: '/professor/students', label: 'My Students', icon: Users },
         { path: '/professor/archives', label: 'Archives', icon: Archive },
+        { path: '/professor/qr-code', label: 'QR Code', icon: QrCode },
       ]
     : [
         { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,6 +34,7 @@ export default function Sidebar() {
         { path: '/admin/students', label: 'All Students', icon: Users },
         { path: '/admin/professors', label: 'All Professors', icon: GraduationCap },
         { path: '/admin/archives', label: 'Archives', icon: Archive },
+        { path: '/admin/qr-code', label: 'QR Code', icon: QrCode },
       ];
 
   return (

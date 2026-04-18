@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Award, FileText, Settings, LogOut, Trophy } from 'lucide-react';
+import { LayoutDashboard, Award, FileText, Settings, LogOut, Trophy, QrCode } from 'lucide-react';
 import './Sidebar.css';
 
 export default function StudentSidebar() {
@@ -19,6 +19,7 @@ export default function StudentSidebar() {
     { path: '/student/leaderboards', label: 'Leaderboards', icon: Trophy },
     { path: '/student/assessments', label: 'Assessment Results', icon: FileText },
     { path: '/student/settings', label: 'Settings', icon: Settings },
+    { path: '/student/qr-code', label: 'QR Code', icon: QrCode },
   ];
 
   const getFullName = () => {

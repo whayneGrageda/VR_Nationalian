@@ -13,8 +13,8 @@ import StudentAssessments from './pages/student/StudentAssessments';
 import StudentSettings from './pages/student/StudentSettings';
 import LeaderboardPage from './pages/shared/LeaderboardPage';
 import ChaptersPage from './pages/shared/ChaptersPage';
+import QRCodePage from './pages/shared/QRCodePage';
 import ArchivesPage from './pages/shared/ArchivesPage';
-import AdminStudentsPage from './pages/admin/AdminStudentsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppRoutes() {
@@ -96,6 +96,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/student/qr-code"
+        element={
+          <ProtectedRoute allowedRoles={[1]}>
+            <QRCodePage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Professor Routes */}
       <Route
@@ -143,6 +151,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={[2]}>
             <ArchivesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professor/qr-code"
+        element={
+          <ProtectedRoute allowedRoles={[2]}>
+            <QRCodePage />
           </ProtectedRoute>
         }
       />
@@ -209,6 +225,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={[3]}>
             <ArchivesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/qr-code"
+        element={
+          <ProtectedRoute allowedRoles={[3]}>
+            <QRCodePage />
           </ProtectedRoute>
         }
       />

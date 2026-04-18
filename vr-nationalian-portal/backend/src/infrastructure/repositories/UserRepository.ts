@@ -18,8 +18,15 @@ export class UserRepository implements IUserRepository {
     // Parse the JSON response from the function
     const result = typeof data === 'string' ? JSON.parse(data) : data;
 
-    if (!result.success) {
-      throw new Error(result.error || 'Invalid credentials');
+    // In database (1).md, the success response doesn't have a 'success' field
+    // But error responses explicitly have 'success: false' and use 'message' for errors
+    if (result.success === false) {
+      throw new Error(result.message || 'Invalid credentials');
+    }
+
+    // Double check that we actually have user data
+    if (!result.user_id && !result.token) {
+      throw new Error('Invalid credentials');
     }
 
     return {
@@ -190,8 +197,8 @@ export class UserRepository implements IUserRepository {
     // Parse the JSON response
     const response = typeof result === 'string' ? JSON.parse(result) : result;
     
-    if (!response.success) {
-      throw new Error('Failed to change password');
+    if (response.success === false) {
+      throw new Error(response.message || 'Failed to change password');
     }
 
     return true;
