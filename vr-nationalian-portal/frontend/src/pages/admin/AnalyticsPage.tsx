@@ -5,6 +5,7 @@ import { AreaChart, Area, Tooltip as RechartsTooltip, ResponsiveContainer } from
 import { SkeletonStats, SkeletonCard } from '../../components/Skeleton';
 import '../shared/Dashboard.css';
 import './AnalyticsPage.css';
+import { supabase } from '../../utils/supabaseClient';
 
 interface ChapterCompletionRate {
   chapterId: number;
@@ -47,6 +48,25 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     fetchAnalytics();
+
+    // Subscribe to real-time updates for analytics
+    const channel = supabase
+      .channel('analytics-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tbluserachievements' },
+        () => fetchAnalytics()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tblcompleted_chapters' },
+        () => fetchAnalytics()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchAnalytics = async () => {

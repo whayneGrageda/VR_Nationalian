@@ -3,6 +3,7 @@ import Layout from '../../components/Layout';
 import StudentLayout from '../../components/StudentLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { Zap, Users, Award, TrendingUp, Medal, Crown, Star } from 'lucide-react';
+import { supabase } from '../../utils/supabaseClient';
 import './LeaderboardPage.css';
 
 interface LeaderboardEntry {
@@ -78,6 +79,25 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     fetchLeaderboards();
+
+    // Subscribe to real-time updates for achievements and completions
+    const channel = supabase
+      .channel('leaderboard-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tbluserachievements' },
+        () => fetchLeaderboards()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tblcompleted_chapters' },
+        () => fetchLeaderboards()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchLeaderboards = async () => {
