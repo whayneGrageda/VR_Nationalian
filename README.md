@@ -105,7 +105,7 @@ The portal utilizes **Supabase Realtime** to provide instant updates without pag
 
 ### Data Flow (The Complete Real-time Loop)
 ```mermaid
-graph TD
+graph LR
     %% Events
     VR[Student in VR App]
     DB[(Supabase Database)]
@@ -132,9 +132,9 @@ graph TD
 ```mermaid
 graph TD
     %% Actors
-    Student([Student])
-    Professor([Professor])
-    Admin([Admin])
+    Student([fa:fa-user Student])
+    Professor([fa:fa-user Professor])
+    Admin([fa:fa-user Admin])
     Supabase((Supabase Realtime))
 
     %% Use Cases
