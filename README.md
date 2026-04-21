@@ -103,7 +103,7 @@ Clean Architecture with clear separation of concerns:
 
 The portal utilizes **Supabase Realtime** to provide instant updates without page refreshes.
 
-### Data Flow (Real-time Loop)
+### Data Flow (The Complete Real-time Loop)
 ```mermaid
 graph TD
     %% Events
@@ -114,13 +114,13 @@ graph TD
     API[Backend API]
 
     %% Flow
-    VR -- "1. Record Progress" --> DB
-    DB -- "2. Table Change" --> RT
-    RT -- "3. Broadcast Event" --> Web
-    Web -- "4. Fetch Updates" --> API
-    API -- "5. Query Stats" --> DB
-    DB -- "6. Return Data" --> API
-    API -- "7. Update UI" --> Web
+    VR -- "1. Record Progress (Chapter/Quiz/Achievement)" --> DB
+    DB -- "2. Table Change Detected (WAL)" --> RT
+    RT -- "3. Broadcast Event to Subscribers" --> Web
+    Web -- "4. Fetch Updated Data" --> API
+    API -- "5. Query Computed Stats" --> DB
+    DB -- "6. Return Latest Data" --> API
+    API -- "7. Update UI (Dashboard/Leaderboard/Analytics)" --> Web
 
     %% Styling
     style RT fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#fff
@@ -138,13 +138,14 @@ graph TD
     Supabase((Supabase Realtime))
 
     %% Use Cases
-    UC1(Perform VR Activities)
+    UC1(Perform VR Activities / Quizzes)
     UC2(View Live Leaderboards)
     UC3(Monitor Real-time Analytics)
-    UC4(Auto-update Dashboard)
+    UC4(Auto-update Dashboard State)
 
     %% Relationships
     Student --- UC1
+    Student --- UC4
     Student --- UC2
     Professor --- UC2
     Admin --- UC2

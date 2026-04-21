@@ -5,6 +5,7 @@ import { SkeletonTable, SkeletonCard } from '../../components/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import '../shared/ManagementPage.css';
 import './StudentPages.css';
+import { supabase } from '../../utils/supabaseClient';
 
 interface Chapter {
   chapterId: number;
@@ -34,6 +35,35 @@ export default function StudentAssessments() {
   useEffect(() => {
     if (user?.userId) {
       fetchChapters();
+
+      // Subscribe to real-time updates for completions and quizzes
+      const channel = supabase
+        .channel(`student-assessments-${user.userId}`)
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tblcompleted_chapters', 
+            filter: `user_id=eq.${user.userId}` 
+          },
+          () => fetchChapters()
+        )
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tblquizscores', 
+            filter: `user_id=eq.${user.userId}` 
+          },
+          () => fetchChapters()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 

@@ -62,6 +62,11 @@ export default function AnalyticsPage() {
         { event: '*', schema: 'public', table: 'tblcompleted_chapters' },
         () => fetchAnalytics()
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tblquizscores' },
+        () => fetchAnalytics()
+      )
       .subscribe();
 
     return () => {

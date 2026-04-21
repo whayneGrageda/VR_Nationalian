@@ -93,6 +93,11 @@ export default function LeaderboardPage() {
         { event: '*', schema: 'public', table: 'tblcompleted_chapters' },
         () => fetchLeaderboards()
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tblquizscores' },
+        () => fetchLeaderboards()
+      )
       .subscribe();
 
     return () => {

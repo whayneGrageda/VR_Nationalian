@@ -4,6 +4,7 @@ import { Gamepad2, Star, Trophy, BarChart3, Clock, Award, CheckCircle, Circle, T
 import { SkeletonStats } from '../../components/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import '../shared/Dashboard.css';
+import { supabase } from '../../utils/supabaseClient';
 
 interface ChapterProgress {
   chapterId: number;
@@ -76,6 +77,45 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (user?.userId) {
       fetchStats();
+
+      // Subscribe to real-time updates for achievements, chapters, and quizzes specific to this student
+      const channel = supabase
+        .channel(`student-dashboard-${user.userId}`)
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tbluserachievements', 
+            filter: `user_id=eq.${user.userId}` 
+          },
+          () => fetchStats()
+        )
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tblcompleted_chapters', 
+            filter: `user_id=eq.${user.userId}` 
+          },
+          () => fetchStats()
+        )
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tblquizscores', 
+            filter: `user_id=eq.${user.userId}` 
+          },
+          () => fetchStats()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
