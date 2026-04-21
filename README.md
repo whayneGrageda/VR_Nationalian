@@ -19,7 +19,8 @@ Clean Architecture with clear separation of concerns:
 ## Tech Stack
 - Backend: Node.js v20.17.0, TypeScript, Express
 - Frontend: React 18, TypeScript (TSX), Vite
-- Database: Supabase (PostgreSQL with pgcrypto)
+- Database: Supabase (Postgres)
+- Real-time: Supabase Realtime (@supabase/supabase-js)
 - Authentication: bcrypt password hashing, session-based
 - Package Manager: npm 10.8.3
 - Icons: Lucide React
@@ -97,6 +98,71 @@ Clean Architecture with clear separation of concerns:
 - Status badges (Active/Inactive, Archived)
 - Student count display in sections
 - Bulk selection with checkboxes
+
+## Real-time Architecture
+
+The portal utilizes **Supabase Realtime** to provide instant updates without page refreshes.
+
+### Data Flow (Real-time Loop)
+```mermaid
+graph TD
+    %% Events
+    VR[Student in VR App]
+    DB[(Supabase Database)]
+    RT{Realtime Engine}
+    Web[Web Portal Frontend]
+    API[Backend API]
+
+    %% Flow
+    VR -- "1. Record Progress" --> DB
+    DB -- "2. Table Change" --> RT
+    RT -- "3. Broadcast Event" --> Web
+    Web -- "4. Fetch Updates" --> API
+    API -- "5. Query Stats" --> DB
+    DB -- "6. Return Data" --> API
+    API -- "7. Update UI" --> Web
+
+    %% Styling
+    style RT fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#fff
+    style Web fill:#3b82f6,stroke:#333,stroke-width:2px,color:#fff
+    style DB fill:#1f2937,stroke:#333,color:#fff
+```
+
+### Use Case Diagram
+```mermaid
+graph TD
+    %% Actors
+    Student([Student])
+    Professor([Professor])
+    Admin([Admin])
+    Supabase((Supabase Realtime))
+
+    %% Use Cases
+    UC1(Perform VR Activities)
+    UC2(View Live Leaderboards)
+    UC3(Monitor Real-time Analytics)
+    UC4(Auto-update Dashboard)
+
+    %% Relationships
+    Student --- UC1
+    Student --- UC2
+    Professor --- UC2
+    Admin --- UC2
+    Admin --- UC3
+
+    %% Realtime Flow
+    UC1 ==> Supabase
+    Supabase ==> UC4
+    UC4 --> UC2
+    UC4 --> UC3
+
+    %% Styling
+    style Supabase fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#fff
+    style UC4 fill:#3b82f6,stroke:#333,stroke-width:2px,color:#fff
+    style Student fill:#f8fafc,stroke:#333,color:#000
+    style Professor fill:#f8fafc,stroke:#333,color:#000
+    style Admin fill:#f8fafc,stroke:#333,color:#000
+```
 
 ## Recent Updates
 
