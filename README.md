@@ -105,7 +105,7 @@ The portal utilizes **Supabase Realtime** to provide instant updates without pag
 
 ### Data Flow (The Complete Real-time Loop)
 ```mermaid
-graph LR
+graph TD
     %% Events
     VR[Student in VR App]
     DB[(Supabase Database)]
@@ -117,10 +117,11 @@ graph LR
     VR -- "1. Record Progress<br/>(Chapter/Quiz/Achievement)" --> DB
     DB -- "2. Table Change<br/>Detected (WAL)" --> RT
     RT -- "3. Broadcast Event<br/>to Subscribers" --> Web
+    
     Web -- "4. Fetch Updated Data" --> API
     API -- "5. Query Computed Stats" --> DB
     DB -- "6. Return Latest Data" --> API
-    API -- "7. Update UI<br/>(Dashboard/Leaderboard)" --> Web
+    API -. "7. Update UI<br/>(Dashboard/Leaderboard)" .-> Web
 
     %% Styling
     style RT fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#fff
@@ -132,9 +133,9 @@ graph LR
 ```mermaid
 graph TD
     %% Actors
-    Student([fa:fa-user Student])
-    Professor([fa:fa-user Professor])
-    Admin([fa:fa-user Admin])
+    Student([🧍 Student])
+    Professor([🧍 Professor])
+    Admin([🧍 Admin])
     Supabase((Supabase Realtime))
 
     %% Use Cases
