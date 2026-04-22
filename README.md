@@ -177,30 +177,55 @@ graph LR
 ```
 
 ### 4.2.3 Data Flow Diagram Level 1 (Functional)
-Breaks down the core real-time loop into four human-readable processes.
+Breaks down the core real-time loop into four human-readable processes managing data movement from VR to Web.
 
 ```mermaid
 graph TD
+    %% External Entities
+    S[Student / Professor]
+    A[Admin]
+    VR[VR Mobile App]
+
+    %% Processes
     P1((1.0 Submit Progress))
     P2((2.0 Verify Identity))
     P3((3.0 Save to Database))
     P4((4.0 Sync Live Dashboard))
 
+    %% Data Stores
     D1[/Authentication Data/]
     D2[/Assessment Data/]
+    D3[/Assessment Artifacts/]
 
-    P1 -- payload --> P2
-    P2 -- fn_login --> D1
-    P2 -- auth ok --> P3
-    P3 -- insert --> D2
-    P3 -- WAL signal --> P4
-    P4 -- query --> D2
-    P4 -- broadcast --> P1
+    %% Flows from Entities
+    S -- "Input Request" --> P1
+    VR -- "VR Data Payload" --> P1
+    A -- "Management Query" --> P1
 
+    %% Internal Flows
+    P1 -- "Request Payload" --> P2
+    P2 -- "Verify fn_login" --> D1
+    D1 -- "Auth Token" --> P2
+    P2 -- "Authorized Data" --> P3
+    P3 -- "Record Progress" --> D2
+    P3 -- "Record Achievement" --> D3
+    
+    P3 -- "Real-time Signal" --> P4
+    P4 -- "Query Stats" --> D2
+    D2 -- "Latest Stats" --> P4
+    
+    %% Outputs
+    P4 -- "Refreshed UI" --> S
+    P4 -- "Live Analytics" --> A
+
+    %% Styling for Black Text
     style P1 fill:#f8fafc,stroke:#333,color:#000
     style P2 fill:#f8fafc,stroke:#333,color:#000
     style P3 fill:#f8fafc,stroke:#333,color:#000
     style P4 fill:#f8fafc,stroke:#333,color:#000
+    style D1 fill:#cbd5e1,stroke:#333,color:#000
+    style D2 fill:#cbd5e1,stroke:#333,color:#000
+    style D3 fill:#cbd5e1,stroke:#333,color:#000
 ```
 
 ### 4.2.4 Real-time Implementation Mapping
@@ -221,34 +246,49 @@ Technical breakdown of user validation, result archival, and the real-time sync 
 #### Process 2.0: Identity Verification
 ```mermaid
 graph TD
-    User([User]) -- "p_username / p_password" --> P2_1[2.1 Receive Login Payload]
-    P2_1 -- "Execute fn_login()" --> P2_2[2.2 RPC Logic]
-    P2_2 -- "Query" --> D1[/Auth Data/]
-    P2_2 -- "Token" --> User
+    User([User Entity]) -- "Credentials" --> P2_1[2.1 Receive Login Data]
+    P2_1 -- "Execute fn_login" --> P2_2[2.2 Cross-check Identity]
+    P2_2 -- "Query" --> D1[/Authentication Data/]
+    D1 -- "Match" --> P2_2
+    P2_2 -- "Status" --> P2_3[2.3 Generate Token]
+    P2_3 -- "JWT Token" --> User
+
+    %% Styling for Black Text
     style P2_1 fill:#f8fafc,stroke:#333,color:#000
     style P2_2 fill:#f8fafc,stroke:#333,color:#000
+    style P2_3 fill:#f8fafc,stroke:#333,color:#000
+    style D1 fill:#cbd5e1,stroke:#333,color:#000
 ```
 
 #### Process 3.0: Progress Archival
 ```mermaid
 graph TD
-    VR([VR App]) -- "Score / Chapter ID" --> P3_1[3.1 Capture Result]
-    P3_1 -- "Commit" --> P3_2[3.2 Update Tables]
-    P3_2 -- "Insert" --> D2[/Assessment Data/]
+    VR([VR App Entity]) -- "SubmitQuiz payload" --> P3_1[3.1 Capture Result]
+    P3_1 -- "Validation" --> P3_2[3.2 Commit to Table]
+    P3_2 -- "Update: tblquizscores" --> D2[/Assessment Data/]
+    P3_2 -- "Update: tbluserachievements" --> D3[/Assessment Artifacts/]
+
+    %% Styling for Black Text
     style P3_1 fill:#f8fafc,stroke:#333,color:#000
     style P3_2 fill:#f8fafc,stroke:#333,color:#000
+    style D2 fill:#cbd5e1,stroke:#333,color:#000
+    style D3 fill:#cbd5e1,stroke:#333,color:#000
 ```
 
 #### Process 4.0: Real-time Sync Loop
 ```mermaid
 graph TD
-    D2[(Supabase DB)] -- "WAL Update" --> P4_1[4.1 Broadcast Event]
-    P4_1 -- "WebSocket Msg" --> P4_2[4.2 Web Listener]
-    P4_2 -- "State Refresh" --> P4_3[4.3 Update UI]
+    DB[(Supabase DB)] -- "WAL Update" --> P4_1[4.1 Broadcast Event]
+    P4_1 -- "WebSocket Msg" --> P4_2[4.2 Web State Listener]
+    P4_2 -- "Auto-Refresh" --> P4_3[4.3 Update UI Stats]
     P4_3 -- "Live View" --> Web([Web Dashboard])
+
+    %% Styling for Black Text
     style P4_1 fill:#3ecf8e,stroke:#333,color:#000
     style P4_2 fill:#f8fafc,stroke:#333,color:#000
     style P4_3 fill:#f8fafc,stroke:#333,color:#000
+    style Web fill:#3b82f6,stroke:#333,color:#000
+    style DB fill:#cbd5e1,stroke:#333,color:#000
 ```
 
 
