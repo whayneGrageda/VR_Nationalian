@@ -146,12 +146,34 @@ Defines the overall scope and external boundaries of the VR Nationalian System.
 
 ```mermaid
 graph LR
+    %% Actors
+    Student[Student]
+    Professor[Professor]
+    Admin[Admin]
+    VRApp[VR Mobile App]
+
+    %% System
     System((0.0 VR Nationalian System))
-    System --- Student[Student]
-    System --- Professor[Professor]
-    System --- Admin[Admin]
-    System --- VRApp[VR Mobile App]
+
+    %% Data Flows
+    Student -- "Login / Stats Requests" --> System
+    System -- "Live Leaderboards" --> Student
+
+    Professor -- "Section Management" --> System
+    System -- "Progress Data" --> Professor
+
+    Admin -- "System Analytics" --> System
+    System -- "Global Stats" --> Admin
+
+    VRApp -- "Activity / Quiz Data" --> System
+    System -- "User State / Token" --> VRApp
+
+    %% Styling for Black Text
     style System fill:#3b82f6,stroke:#333,stroke-width:2px,color:#000
+    style Student fill:#f8fafc,stroke:#333,color:#000
+    style Professor fill:#f8fafc,stroke:#333,color:#000
+    style Admin fill:#f8fafc,stroke:#333,color:#000
+    style VRApp fill:#f8fafc,stroke:#333,color:#000
 ```
 
 ### 4.2.3 Data Flow Diagram Level 1 (Functional)
