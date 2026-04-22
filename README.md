@@ -99,36 +99,13 @@ Clean Architecture with clear separation of concerns:
 - Student count display in sections
 - Bulk selection with checkboxes
 
-## Real-time Architecture
+## System & Data Flow Architecture
 
-The portal utilizes **Supabase Realtime** to provide instant updates without page refreshes.
+The portal utilizes **Supabase Realtime** to provide instant updates. The following diagrams document the system's functional and technical flow according to standard DFD levels.
 
-### Data Flow (The Complete Real-time Loop)
-```mermaid
-graph TD
-    %% Events
-    VR[Student in VR App]
-    DB[(Supabase Database)]
-    RT{Realtime Engine}
-    Web[Web Portal Frontend]
-    API[Backend API]
+### 4.2.1 Use Case Diagram
+Describes the functional interactions between actors and the real-time system.
 
-    %% Flow
-    VR -- "1. Record Progress<br/>(Chapter/Quiz/Achievement)" --> DB
-    DB -- "2. Table Change<br/>Detected (WAL)" --> RT
-    RT -- "3. Broadcast Event<br/>to Subscribers" --> Web
-    Web -- "4. Fetch Updated Data" --> API
-    API -- "5. Query Computed Stats" --> DB
-    DB -- "6. Return Latest Data" --> API
-    API -- "7. Update UI<br/>(Dashboard/Leaderboard)" --> Web
-
-    %% Styling
-    style RT fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#fff
-    style Web fill:#3b82f6,stroke:#333,stroke-width:2px,color:#fff
-    style DB fill:#1f2937,stroke:#333,color:#fff
-```
-
-### Use Case Diagram
 ```mermaid
 graph TD
     %% Actors
@@ -145,7 +122,6 @@ graph TD
 
     %% Relationships
     Student --- UC1
-    Student --- UC4
     Student --- UC2
     Professor --- UC2
     Admin --- UC2
@@ -157,13 +133,102 @@ graph TD
     UC4 --> UC2
     UC4 --> UC3
 
-    %% Styling
-    style Supabase fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#fff
-    style UC4 fill:#3b82f6,stroke:#333,stroke-width:2px,color:#fff
+    %% Styling for Black Text
+    style Supabase fill:#3ecf8e,stroke:#333,stroke-width:2px,color:#000
+    style UC4 fill:#3b82f6,stroke:#333,stroke-width:2px,color:#000
     style Student fill:#f8fafc,stroke:#333,color:#000
     style Professor fill:#f8fafc,stroke:#333,color:#000
     style Admin fill:#f8fafc,stroke:#333,color:#000
 ```
+
+### 4.2.2 Data Flow Diagram Level 0 (Context)
+Defines the overall scope and external boundaries of the VR Nationalian System.
+
+```mermaid
+graph LR
+    System((0.0 VR Nationalian System))
+    System --- Student[Student]
+    System --- Professor[Professor]
+    System --- Admin[Admin]
+    System --- VRApp[VR Mobile App]
+    style System fill:#3b82f6,stroke:#333,stroke-width:2px,color:#000
+```
+
+### 4.2.3 Data Flow Diagram Level 1 (Functional)
+Breaks down the core real-time loop into four human-readable processes.
+
+```mermaid
+graph TD
+    P1((1.0 Submit Progress))
+    P2((2.0 Verify Identity))
+    P3((3.0 Save to Database))
+    P4((4.0 Sync Live Dashboard))
+
+    D1[/Authentication Data/]
+    D2[/Assessment Data/]
+
+    P1 -- payload --> P2
+    P2 -- fn_login --> D1
+    P2 -- auth ok --> P3
+    P3 -- insert --> D2
+    P3 -- WAL signal --> P4
+    P4 -- query --> D2
+    P4 -- broadcast --> P1
+
+    style P1 fill:#f8fafc,stroke:#333,color:#000
+    style P2 fill:#f8fafc,stroke:#333,color:#000
+    style P3 fill:#f8fafc,stroke:#333,color:#000
+    style P4 fill:#f8fafc,stroke:#333,color:#000
+```
+
+### 4.2.4 Real-time Implementation Mapping
+The following table maps the diagram processes to their actual locations in the source code.
+
+| DFD Process | Code Implementation Location | Technology |
+| :--- | :--- | :--- |
+| **1.0 Submit Progress** | `SupabaseManager.cs` (Unity) / `LeaderboardPage.tsx` | C# / React |
+| **2.0 Verify Identity** | Supabase RPC: `fn_login` | PL/pgSQL |
+| **3.0 Save to Database** | Supabase RPC: `SubmitQuiz`, `CompleteChapter` | PL/pgSQL |
+| **4.0 Sync Live Dashboard** | `frontend/src/utils/supabaseClient.ts` | WebSocket (Supabase) |
+| **4.2 Web State Listener** | `LeaderboardPage.tsx`, `AnalyticsPage.tsx`, `StudentDashboard.tsx` | React `useEffect` |
+| **4.3 Update UI Stats** | Callbacks like `fetchLeaderboards()` or `fetchStats()` | React Hooks |
+
+### 4.2.5 Data Flow Diagram Level 2 (Process Explosions)
+Technical breakdown of user validation, result archival, and the real-time sync cycle.
+
+#### Process 2.0: Identity Verification
+```mermaid
+graph TD
+    User([User]) -- "p_username / p_password" --> P2_1[2.1 Receive Login Payload]
+    P2_1 -- "Execute fn_login()" --> P2_2[2.2 RPC Logic]
+    P2_2 -- "Query" --> D1[/Auth Data/]
+    P2_2 -- "Token" --> User
+    style P2_1 fill:#f8fafc,stroke:#333,color:#000
+    style P2_2 fill:#f8fafc,stroke:#333,color:#000
+```
+
+#### Process 3.0: Progress Archival
+```mermaid
+graph TD
+    VR([VR App]) -- "Score / Chapter ID" --> P3_1[3.1 Capture Result]
+    P3_1 -- "Commit" --> P3_2[3.2 Update Tables]
+    P3_2 -- "Insert" --> D2[/Assessment Data/]
+    style P3_1 fill:#f8fafc,stroke:#333,color:#000
+    style P3_2 fill:#f8fafc,stroke:#333,color:#000
+```
+
+#### Process 4.0: Real-time Sync Loop
+```mermaid
+graph TD
+    D2[(Supabase DB)] -- "WAL Update" --> P4_1[4.1 Broadcast Event]
+    P4_1 -- "WebSocket Msg" --> P4_2[4.2 Web Listener]
+    P4_2 -- "State Refresh" --> P4_3[4.3 Update UI]
+    P4_3 -- "Live View" --> Web([Web Dashboard])
+    style P4_1 fill:#3ecf8e,stroke:#333,color:#000
+    style P4_2 fill:#f8fafc,stroke:#333,color:#000
+    style P4_3 fill:#f8fafc,stroke:#333,color:#000
+```
+
 
 ## Recent Updates
 
