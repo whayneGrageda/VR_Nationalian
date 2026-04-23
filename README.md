@@ -405,16 +405,6 @@ frontend/src/
 └── main.tsx               # Application entry point
 ```
 
-### Documentation (`/mds-and-sqls`)
-- `database (1).md` - Complete database schema and functions
-- `FEATURES.md` - Feature checklist and roadmap
-- `API_DOCUMENTATION.md` - API endpoint documentation
-- `USER_FRIENDLY_ERROR_HANDLING.md` - Error handling guide
-- `SECTION_DEACTIVATION_GUIDE.md` - Section deactivation feature
-- `ARCHIVE_IMPLEMENTATION.md` - Archive system documentation
-- `LEADERBOARD_IMPLEMENTATION.md` - Leaderboard system guide
-- SQL migration files for database updates
-
 ## Recent Updates
 
 ### April 2026 - Frontend Reorganization & Code Structure
