@@ -2,6 +2,8 @@ import { User, CreateStudentDTO, UpdateStudentDTO, UpdateProfileDTO, ChangePassw
 
 export interface IUserRepository {
   login(username: string, password: string): Promise<User>;
+  findByEmail(email: string): Promise<User | null>;
+  updatePasswordByEmail(email: string, newPassword: string): Promise<boolean>;
   createStudent(data: CreateStudentDTO): Promise<string>;
   getStudentsBySection(sectionId: string): Promise<User[]>;
   getAllStudents(): Promise<User[]>;

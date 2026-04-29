@@ -451,4 +451,41 @@ export class UserRepository implements IUserRepository {
     if (error) throw new Error(error.message);
     return true;
   }
+
+  async findByEmail(email: string): Promise<User | null> {
+    const { data, error } = await this.supabase
+      .from('tblusers')
+      .select('user_id, username, email, role_id, first_name, middle_initial, last_name, section_id')
+      .eq('email', email)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) return null;
+
+    return {
+      userId: data.user_id,
+      username: data.username,
+      email: data.email,
+      roleId: data.role_id,
+      roleName: data.role_id === 1 ? 'student' : data.role_id === 2 ? 'professor' : 'admin',
+      firstName: data.first_name,
+      middleInitial: data.middle_initial,
+      lastName: data.last_name,
+      sectionId: data.section_id
+    };
+  }
+
+  async updatePasswordByEmail(email: string, newPassword: string): Promise<boolean> {
+    // Update password directly - Supabase trigger will hash it
+    const { error } = await this.supabase
+      .from('tblusers')
+      .update({ 
+        password: newPassword
+      })
+      .eq('email', email)
+      .eq('is_active', true);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
 }

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LandingPage from './pages/shared/LandingPage';
 import LoginPage from './pages/shared/LoginPage';
 import ProfessorDashboard from './pages/professor/ProfessorDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -50,6 +51,10 @@ function AppRoutes() {
 
   return (
     <Routes>
+      <Route 
+        path="/" 
+        element={<LandingPage />} 
+      />
       <Route 
         path="/login" 
         element={user ? <Navigate to={getDefaultRoute()} replace /> : <LoginPage />} 
@@ -237,8 +242,7 @@ function AppRoutes() {
         }
       />
       
-      <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
-      <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

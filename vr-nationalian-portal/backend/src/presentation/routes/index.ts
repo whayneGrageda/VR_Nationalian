@@ -35,6 +35,9 @@ export function createRoutes(
 
   router.post('/auth/login', authController.login);
   router.post('/auth/logout', logoutController.logout.bind(logoutController));
+  router.post('/auth/request-password-reset', authController.requestPasswordReset);
+  router.post('/auth/verify-password-reset', authController.verifyPasswordResetCode);
+  router.post('/auth/update-password', authController.updatePassword);
 
   router.get('/stats/dashboard', statsController.getDashboardStats);
   router.get('/stats/admin/overview', statsController.getAdminOverview);
