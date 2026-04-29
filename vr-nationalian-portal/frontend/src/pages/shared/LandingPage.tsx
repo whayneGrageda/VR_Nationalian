@@ -92,9 +92,9 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="stat-item">
               <span className="stat-number">
-                120<span>+</span>
+                6<span></span>
               </span>
-              <span className="stat-label">Questions</span>
+              <span className="stat-label">Nationalian Lessons</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">
@@ -238,17 +238,23 @@ const LandingPage: React.FC = () => {
         </div>
         <div className="team-grid">
           <div className="team-card reveal">
-            <div className="team-avatar blue">IL</div>
+            <div className="team-avatar-img">
+              <img src="/Iryl.png" alt="Iryl Jensel Lipata" />
+            </div>
             <div className="team-name">Iryl Jensel Lipata</div>
             <div className="team-role">Web Developer</div>
           </div>
           <div className="team-card reveal reveal-delay-1">
-            <div className="team-avatar green">CA</div>
+            <div className="team-avatar-img">
+              <img src="/Angcao.png" alt="Charles Dominic Angcao" />
+            </div>
             <div className="team-name">Charles Dominic Angcao</div>
             <div className="team-role">Technical Support</div>
           </div>
           <div className="team-card reveal reveal-delay-2">
-            <div className="team-avatar purple">JS</div>
+            <div className="team-avatar-img">
+              <img src="/Jason.png" alt="Jason Salazar" />
+            </div>
             <div className="team-name">Jason Salazar</div>
             <div className="team-role">App Developer</div>
           </div>
