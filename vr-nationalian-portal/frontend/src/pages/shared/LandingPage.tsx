@@ -1,12 +1,32 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import './LandingPage.css';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
+    // Check if user is already logged in and redirect to appropriate dashboard
+    if (user) {
+      switch (user.roleId) {
+        case 1:
+          navigate('/student', { replace: true });
+          break;
+        case 2:
+          navigate('/professor', { replace: true });
+          break;
+        case 3:
+          navigate('/admin', { replace: true });
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+
     // Intersection Observer for scroll animations
     const els = document.querySelectorAll('.reveal');
     observerRef.current = new IntersectionObserver(
@@ -26,7 +46,7 @@ const LandingPage: React.FC = () => {
     return () => {
       observerRef.current?.disconnect();
     };
-  }, []);
+  }, [user, navigate]);
 
   const handleEnter = () => {
     navigate('/login');
