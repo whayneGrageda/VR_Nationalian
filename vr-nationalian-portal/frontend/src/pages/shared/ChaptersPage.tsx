@@ -105,17 +105,34 @@ export default function ChaptersPage() {
     return score;
   };
 
-  // Extract unique prefixes and numbers from section names
+  // Extract unique prefixes and numbers from ALL sections (not just those with students)
   const extractSectionParts = () => {
     const prefixes = new Set<string>();
     const allNumbers = new Set<string>();
     const prefixToNumbers = new Map<string, Set<string>>();
 
+    // Get all unique section names from both sections array and student data
+    const allSectionNames = new Set<string>();
+    
+    // Add from sections array
     sections.forEach(section => {
-      const match = section.sectionName.match(/^([A-Z]+)[\s-]?(\d+)/i);
-      if (match) {
-        const prefix = match[1].toUpperCase();
-        const number = match[2];
+      allSectionNames.add(section.sectionName);
+    });
+    
+    // Add from student data (in case there are sections not in the sections array)
+    students.forEach(student => {
+      if (student.sectionName) {
+        allSectionNames.add(student.sectionName);
+      }
+    });
+
+    // Extract prefixes and numbers from all section names
+    allSectionNames.forEach(sectionName => {
+      // Try to match pattern with number (e.g., "INF-222", "HMA-221")
+      const matchWithNumber = sectionName.match(/^([A-Z]+)[\s-]?(\d+)/i);
+      if (matchWithNumber) {
+        const prefix = matchWithNumber[1].toUpperCase();
+        const number = matchWithNumber[2];
 
         prefixes.add(prefix);
         allNumbers.add(number);
@@ -124,6 +141,18 @@ export default function ChaptersPage() {
           prefixToNumbers.set(prefix, new Set<string>());
         }
         prefixToNumbers.get(prefix)!.add(number);
+      } else {
+        // If no number, just extract the prefix (e.g., "BSIT", "HM", "SBMA")
+        const matchPrefixOnly = sectionName.match(/^([A-Z]+)/i);
+        if (matchPrefixOnly) {
+          const prefix = matchPrefixOnly[1].toUpperCase();
+          prefixes.add(prefix);
+          
+          // Add empty set for prefixes without numbers
+          if (!prefixToNumbers.has(prefix)) {
+            prefixToNumbers.set(prefix, new Set<string>());
+          }
+        }
       }
     });
 
@@ -151,12 +180,14 @@ export default function ChaptersPage() {
     const sectionName = student.sectionName || '';
     let matchesPrefix = true;
     if (selectedPrefix) {
+      // Match the prefix at the start of the section name
       const match = sectionName.match(/^([A-Z]+)/i);
       matchesPrefix = match ? match[1].toUpperCase() === selectedPrefix : false;
     }
 
     let matchesNumber = true;
     if (selectedNumber) {
+      // Only filter by number if a number is selected
       const match = sectionName.match(/(\d+)/);
       matchesNumber = match ? match[1] === selectedNumber : false;
     }

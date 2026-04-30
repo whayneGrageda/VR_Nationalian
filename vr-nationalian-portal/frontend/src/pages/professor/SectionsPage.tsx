@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import Pagination from '../../components/Pagination';
 import { useAuth } from '../../contexts/AuthContext';
-import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive, Power, PowerOff } from 'lucide-react';
+import { BookOpen, Edit2, Trash2, Users, ArrowLeft, UserPlus, ChevronRight, Archive, Power, PowerOff, RefreshCw } from 'lucide-react';
 import { SkeletonTable } from '../../components/Skeleton';
 import { getUserFriendlyError, handleApiResponse } from '../../utils/errorHandler';
 import '../shared/ManagementPage.css';
@@ -139,6 +139,28 @@ export default function SectionsPage() {
   const handleBackToSections = () => {
     setSelectedSection(null);
     setStudents([]);
+  };
+
+  const generatePassword = () => {
+    const length = 12;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    
+    // Ensure at least one of each type
+    password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)];
+    password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)];
+    password += '0123456789'[Math.floor(Math.random() * 10)];
+    password += '!@#$%^&*'[Math.floor(Math.random() * 8)];
+    
+    // Fill the rest
+    for (let i = password.length; i < length; i++) {
+      password += charset[Math.floor(Math.random() * charset.length)];
+    }
+    
+    // Shuffle the password
+    password = password.split('').sort(() => Math.random() - 0.5).join('');
+    
+    setStudentFormData({ ...studentFormData, password });
   };
 
   const handleStudentClick = (student: Student) => {
@@ -981,13 +1003,43 @@ export default function SectionsPage() {
                         </div>
                         <div className="form-group" style={{ margin: 0 }}>
                           <label className="form-label">Password *</label>
-                          <input
-                            type="password"
-                            className="form-input"
-                            value={studentFormData.password}
-                            onChange={(e) => setStudentFormData({ ...studentFormData, password: e.target.value })}
-                            required
-                          />
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input
+                              type="password"
+                              className="form-input"
+                              value={studentFormData.password}
+                              onChange={(e) => setStudentFormData({ ...studentFormData, password: e.target.value })}
+                              required
+                              style={{ flex: 1 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={generatePassword}
+                              className="btn-icon"
+                              title="Generate Password"
+                              style={{
+                                padding: '0.5rem',
+                                background: '#3b82f6',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minWidth: '40px',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#2563eb';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#3b82f6';
+                              }}
+                            >
+                              <RefreshCw size={16} />
+                            </button>
+                          </div>
                         </div>
                         <div className="form-group" style={{ margin: 0 }}>
                           <label className="form-label">Email *</label>
