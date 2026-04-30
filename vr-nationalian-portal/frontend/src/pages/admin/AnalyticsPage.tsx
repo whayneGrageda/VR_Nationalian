@@ -128,6 +128,20 @@ export default function AnalyticsPage() {
       .slice(0, 5);
   };
 
+  // Format playtime to show hours and minutes
+  const formatPlaytime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    
+    if (hours === 0) {
+      return `${mins}m`;
+    } else if (mins === 0) {
+      return `${hours}h`;
+    } else {
+      return `${hours}h ${mins}m`;
+    }
+  };
+
   return (
     <Layout>
       <div className="dashboard">
@@ -280,7 +294,7 @@ export default function AnalyticsPage() {
                           <div className="risk-name">{student.username}</div>
                           <div className="risk-stats">
                             <span className="risk-stat">{student.chaptersCompleted} chapters</span>
-                            <span className="risk-stat">{Math.floor(student.totalPlaytime / 60)}h playtime</span>
+                            <span className="risk-stat">{formatPlaytime(student.totalPlaytime)} playtime</span>
                           </div>
                         </div>
                         <div className="risk-badge">Low Activity</div>
