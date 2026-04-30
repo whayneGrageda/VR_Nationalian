@@ -279,7 +279,9 @@ const LandingPage: React.FC = () => {
             <div className="team-role">App Developer</div>
           </div>
           <div className="team-card reveal reveal-delay-3">
-            <div className="team-avatar gold">GB</div>
+            <div className="team-avatar-img">
+              <img src="/Balaoro.png" alt="Gabriel Balaoro" />
+            </div>
             <div className="team-name">Gabriel Balaoro</div>
             <div className="team-role">Documentation</div>
           </div>
